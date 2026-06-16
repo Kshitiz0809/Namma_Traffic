@@ -10,16 +10,17 @@ written to a separate file specifically so that mistake requires an
 explicit, visible join rather than already being in the same table.
 
 Definitions (all relative to the same h3_cell as the current row):
-- target_count_15m / 30m / 60m: count of OTHER violations in this cell in the
-  N minutes strictly AFTER this row's created_datetime (excludes itself).
-- target_hotspot_60m: 1 if target_count_60m > 0, else 0.
+- target_count_15m / 30m / 60m / 90m: count of OTHER violations in this cell
+  in the N minutes strictly AFTER this row's created_datetime (excludes itself).
+- target_hotspot_15m / 30m / 60m / 90m: 1 if target_count_Nm > 0, else 0.
+  (90m window added in Phase 3.5 Task 4 — multi-horizon comparison.)
 """
 
 from __future__ import annotations
 
 import pandas as pd
 
-TARGET_WINDOWS_MINUTES = [15, 30, 60]
+TARGET_WINDOWS_MINUTES = [15, 30, 60, 90]
 
 
 def _forward_count(sorted_df: pd.DataFrame, minutes: int) -> pd.Series:
@@ -64,5 +65,6 @@ def add_targets(df: pd.DataFrame) -> pd.DataFrame:
         col = f"target_count_{minutes}m"
         targets[col] = _forward_count(sorted_df, minutes).reindex(df.index)
 
-    targets["target_hotspot_60m"] = (targets["target_count_60m"] > 0).astype(int)
+    for minutes in TARGET_WINDOWS_MINUTES:
+        targets[f"target_hotspot_{minutes}m"] = (targets[f"target_count_{minutes}m"] > 0).astype(int)
     return targets

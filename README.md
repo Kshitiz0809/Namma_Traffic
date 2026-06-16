@@ -283,7 +283,76 @@ Full tables, confusion matrix, calibration, SHAP, and all 4 ablation results:
 
 ---
 
-## Phases 4–10
+## Phase 3.5 — Decision Layer Hardening ✅ + Phase 4 — Multi-Horizon Forecast (initial) ✅
+
+Goal: deployability/robustness, not a higher validation score (explicit
+instruction — no model retraining for score-chasing). Five tasks, all run
+against the real dataset, all results — including an honest FAIL — reported
+as found.
+
+### What was built
+- **`backend/app/models/`**: `threshold_optimization.py` (cost-aware
+  threshold sweep), `calibration.py` (Platt/Isotonic via sklearn's
+  `FrozenEstimator`, ECE), `spatial_holdout.py` (H3-cell-level train/holdout
+  split), `multi_horizon.py` (15/30/60/90m comparison + base-rate-corrected
+  lift), `shap_audit.py` (bootstrap SHAP stability), `harden.py` (orchestrator)
+- **`backend/app/features/targets.py`** extended: `target_hotspot_15m/30m/90m`
+  added alongside the existing 60m target
+- **5 new ADRs** (014-018) — cost model, test-set reuse policy, spatial
+  holdout methodology+result, SHAP audit methodology+findings, multi-horizon
+  base-rate caveat
+- **11 generated artifacts** in `docs/`: `threshold_metrics.csv`,
+  `threshold_selection.md`, `threshold_curve.png`, `calibration_results.csv`,
+  `calibration_curve.png`, `spatial_holdout.md`, `region_performance.csv`,
+  `horizon_comparison.csv`, `forecast_curves.png`, `feature_stability.csv`,
+  `shap_summary.png`
+- **`ml/notebooks/03_model_comparison.ipynb`** extended with 5 new sections
+  covering all 5 tasks, re-executed with real outputs
+- **12 new tests** (31/31 total passing)
+
+### How to run
+```bash
+cd backend
+python -m app.features.targets    # (only needed if rebuilding targets.parquet from scratch)
+python -m app.models.harden        # ~5 minutes — runs all 5 hardening tasks
+pytest -v                          # 31 tests, ~95s
+```
+
+### Results — including one explicit FAIL
+
+| Task | Result | Decision |
+|---|---|---|
+| 1. Cost-aware threshold (FN 3x worse than FP) | Min-cost threshold = **0.15** (was 0.30) | **Switched default threshold** |
+| 2. Calibration | Platt +0.66% / Isotonic +1.12% Brier improvement — both below the 5% bar | **Kept uncalibrated baseline** |
+| 3. Spatial holdout (unseen H3 cells) | PR-AUC drop **7.88%** (bar was <5%) | **FAIL** — flagged, not hidden |
+| 4. Multi-horizon (15/30/60/90m) | Raw PR-AUC rises with horizon (base-rate artifact); lift-corrected metric favors **shorter** horizons | Operational horizon stays **60m** (lead-time/consistency trade-off, documented) |
+| 5. SHAP stability (5 bootstraps) | Top-10 perfectly stable (1.0); `h3_cell` mean rank 1.0 — corroborates Task 3 | Confirms spatial memorization is real |
+
+**The headline finding:** Tasks 3 and 4 independently agree the model leans
+on `h3_cell` identity more than is healthy for generalizing to brand-new
+geographic coverage. This is surfaced as a documented limitation (see
+`docs/spatial_holdout.md` for redesign recommendations) rather than hidden
+or silently patched — the instruction was to prioritize deployability and
+honesty over a better-looking metric, and this is exactly the kind of result
+that instruction was meant to surface.
+
+Full writeup: **`docs/baseline_results.md`** ("Phase 3.5/4" section) and
+**`MODEL_REPORT.md`**.
+
+### Next risks
+- Spatial generalization FAIL is not fixed yet — Phase 5/6 deployment should
+  assume the model is reliable on already-seen H3 cells only, until a
+  feature redesign (or retraining on expanded coverage) is done.
+- The 3:1 false-negative-to-false-positive cost ratio (Task 1) is a stated
+  assumption, not measured — replace with real intervention-cost data if it
+  becomes available.
+- Multi-horizon targets (15/30/90m) exist in `targets.parquet` but only got
+  a single baseline comparison run — not the full ablation/calibration
+  treatment the 60m target received.
+
+---
+
+## Phases 5–10
 Not started yet. See the build prompt for full scope; each phase gets its own
 README section, architecture diagram update, and approval checkpoint before
 the next phase begins.

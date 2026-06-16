@@ -79,15 +79,64 @@ all min-max scaled on train-period stats. Mean 0.096, median 0.086, max
   the full set of spatially-derived numeric features — a complete ablation
   would re-derive density/rolling features on a GeoHash grid too.
 
-## Phase 4 — Temporal Forecast Engine (not started)
+## Phase 3.5 — Decision Layer Hardening ✅
 
-Planned: extend the `target_count_60m` regression baseline above to the
-15/30-minute horizons too (`target_count_15m`, `target_count_30m` already
-exist in `targets.parquet`), compare against a naive baseline (e.g.
-same-hour-yesterday), consider LSTM only if the gap over the tree-based
-baseline justifies it.
+Goal: deployability/robustness, not higher validation PR-AUC (explicit
+instruction — no model retraining for score-chasing this round). Full
+writeup: `docs/baseline_results.md` "Phase 3.5/4" section. Artifacts:
+`threshold_metrics.csv`, `threshold_selection.md`, `threshold_curve.png`,
+`calibration_results.csv`, `calibration_curve.png`, `spatial_holdout.md`,
+`region_performance.csv`, `feature_stability.csv`, `shap_summary.png`.
+
+| Task | Result | Decision |
+|---|---|---|
+| 1. Cost-aware threshold (FP=1, FN=3) | Min-cost threshold = 0.15 (cost 13,415 vs. 14,624 at old F1-optimal 0.30) | **Switch default threshold 0.30 → 0.15** |
+| 2. Calibration (Platt/Isotonic) | Neither clears the ≥5% Brier-improvement bar (Platt +0.66%, Isotonic +1.12%) | **Keep uncalibrated baseline** |
+| 3. Spatial holdout (unseen H3 cells) | PR-AUC drop 7.88% (seen 0.8833 vs unseen 0.8137) — **exceeds 5% bar** | **FAIL — flagged as known limitation, not fixed this round** |
+| 4. Explainability audit (5 bootstraps) | Top-10 stability 1.0 (perfect); `h3_cell` mean rank 1.0 (always #1) — corroborates Task 3 | Confirms spatial memorization is real, not a fluke |
+
+**Most important finding:** Tasks 3 and 4 independently agree the model
+leans on `h3_cell` identity more than is healthy for generalization to new
+geography. Not fixed this round (would require feature redesign — see
+`docs/spatial_holdout.md` recommendations) — surfaced and documented instead
+of hidden, per the instruction to prioritize deployability/honesty over
+chasing a better-looking metric.
+
+## Phase 4 — Multi-Horizon Forecast Engine ✅ (initial)
+
+`target_hotspot_15m/30m/60m/90m` all added to `targets.parquet`
+(`backend/app/features/targets.py`). Same CatBoost baseline, same
+time-based split, trained per horizon (`docs/horizon_comparison.csv`,
+`docs/forecast_curves.png`).
+
+| Horizon | PR-AUC (raw) | Positive rate | Lift over base rate |
+|---|---|---|---|
+| 15m | 0.7834 | 60.5% | **1.294** |
+| 30m | 0.8337 | 65.3% | 1.276 |
+| 60m | 0.8767 | 70.0% | 1.253 |
+| 90m | 0.8929 | 72.4% | 1.234 |
+
+**Critical finding:** raw PR-AUC rises with horizon almost entirely because
+longer windows have a higher positive rate, not because longer-horizon
+predictions are more skillful — confirmed by `lift_over_base_rate`
+(PR-AUC ÷ positive rate), which actually *favors shorter horizons* (15m:
+1.294 vs 90m: 1.234), the opposite conclusion from raw PR-AUC alone.
+
+**Recommended operational horizon: 60 minutes** (unchanged) — balances
+strong absolute performance, reasonable lift, practical enforcement lead
+time, and consistency with `congestion_score`/Phase 3 artifacts already
+built around this window. Full rationale: `docs/baseline_results.md`.
+
+### Final operating recommendation (going into Phase 5)
+| Decision | Value |
+|---|---|
+| Operating threshold | **0.15** (was 0.30) |
+| Calibration | None (baseline probabilities) |
+| Operational horizon | **60 minutes** |
+| Spatial robustness | **FAIL** — model won't generalize to new geographic coverage without retraining |
 
 ## Phase 5+ — Congestion Impact / Alert Engine (not started)
 
 `congestion_score` from Phase 3 is the starting formula. Not yet calibrated
-against real outcomes.
+against real outcomes. Alert engine should use the **0.15 threshold**
+(Phase 3.5 Task 1), not Phase 3's original 0.30.

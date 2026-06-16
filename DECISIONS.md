@@ -286,3 +286,129 @@ for a tree model (`location` would need NLP, out of scope) or are
 near-unique-per-row identifiers that a tree model would overfit to as a
 memorization shortcut (`vehicle_number`, `device_id`) rather than learning
 generalizable patterns.
+
+---
+
+## ADR-014: Cost-aware threshold replaces F1-only operating point
+
+**Decision:** Phase 3.5 introduces an explicit cost model —
+`cost = FP * cost_fp + FN * cost_fn`, default `cost_fp=1, cost_fn=3` — and
+sweeps thresholds 0.05-0.95 (step 0.05) computing precision, recall, F1,
+specificity, FPR, and cost at each. Three named operating points are
+reported (`backend/app/models/threshold_optimization.py`,
+`docs/threshold_selection.md`): F1-optimal (Phase 3's original criterion,
+kept for comparison), high-precision (lowest cost among thresholds with
+precision ≥0.85, for patrol-capacity-constrained deployments), and balanced
+(minimizes total cost directly — the new recommended default).
+
+**Why 3x weight on false negatives:** a missed hotspot means an enforcement
+opportunity is lost entirely; a false positive means a patrol checks a
+location that turns out fine — wasteful, but recoverable. This 3:1 ratio is
+a **stated assumption**, not measured from real cost data (none was
+provided). Phase 6 (Alert Engine) should replace it with actual
+intervention-cost figures if/when available; until then it's a documented
+placeholder, not a tuned constant.
+
+**Why not just maximize F1:** F1 treats false positives and false negatives
+as equally costly, which is rarely true for a real intervention system and
+isn't even claimed to be true here — it was Phase 3's metric because no
+explicit cost model existed yet, not because it's the right deployment criterion.
+
+---
+
+## ADR-015: Test-set reuse policy for hardening diagnostics
+
+**Decision:** Phase 3 established "test is touched exactly once, with the
+already-chosen winner." Phase 3.5's hardening tasks (calibration evaluation,
+threshold sweep) read test-set predictions multiple times across different
+diagnostics. This is **read-only reuse for evaluation, not re-selection** —
+no hardening task result feeds back into choosing a different base model or
+retraining with test-set knowledge. The original Phase 3 model-selection
+decision (CatBoost, chosen on validation PR-AUC) is never revisited based on
+what these diagnostics find on test.
+
+**Why this is still safe:** the distinction that matters is between "using
+test to choose/tune" (which leaks evaluation-set information into the
+model) and "using test to characterize an already-fixed model" (calibration
+quality, threshold trade-offs) — the latter doesn't change what was
+trained, only how its frozen outputs get post-processed/interpreted, so
+reusing the fixed test set for several independent characterizations of the
+same frozen model doesn't compound leakage the way repeated model-selection
+peeking would.
+
+---
+
+## ADR-016: Spatial holdout methodology and result
+
+**Decision:** H3 cells (not rows) are split 80/20 into train-cells/holdout-cells
+(`backend/app/models/spatial_holdout.py`, seed=42). CatBoost is retrained
+using only train-period rows from train-cells, then evaluated on the SAME
+validation time window, split by whether each row's cell was seen during
+training — isolating the spatial effect from the temporal one (both
+evaluation sets share the same time period).
+
+**Result: FAIL.** PR-AUC drops 7.88% on unseen cells (0.8833 seen vs 0.8137
+unseen) — above the 5% acceptance bar. This is consistent with the SHAP
+audit (ADR-017): `h3_cell` has mean rank 1.0 across bootstraps, i.e. it is
+*always* the single most important feature, never displaced. **The model
+partially memorizes per-cell identity rather than purely generalizing from
+cell-agnostic signals.**
+
+**What this does and doesn't mean:** it does NOT mean the model is useless
+for its actual deployment context — Bengaluru's H3 grid is fixed, and most
+real future predictions will fall in cells the model has already seen
+historical data for. It DOES mean the model should not be trusted to
+generalize to genuinely new geographic coverage areas without retraining,
+and that `h3_cell`'s outsized influence is a known, documented risk rather
+than an assumed strength. Full writeup + recommendations: `docs/spatial_holdout.md`.
+
+---
+
+## ADR-017: SHAP stability audit methodology and findings
+
+**Decision:** SHAP values recomputed across 5 bootstrap resamples (50% of
+validation set each, `backend/app/models/shap_audit.py`) to check whether
+the top-feature ranking is a stable property of the model or an artifact of
+one particular sample. Explicitly checked for: H3 dominance, timestamp
+leakage (verified `created_datetime` and other raw timestamp columns are
+never in `MODEL_FEATURE_COLUMNS` — confirmed absent), target proxies
+(numeric features with |correlation| ≥0.95 to the target — none found; the
+strongest engineered features top out around 0.3-0.4, consistent with
+Phase 2's feature validation notebook).
+
+**Findings:**
+- **Top-10 feature ranking is perfectly stable** (Jaccard stability score =
+  1.0 — the exact same 10 features appear in every bootstrap's top-10, just
+  reordered slightly within that set).
+- **H3 dominance confirmed**: `h3_cell` has mean rank 1.0 across all 5
+  bootstraps (always #1) — corroborates the spatial holdout failure (ADR-016)
+  from an independent angle (explainability vs. held-out accuracy), which is
+  more convincing than either result alone.
+- No timestamp leakage, no target proxies detected.
+
+Full table: `docs/feature_stability.csv`. Plot: `docs/shap_summary.png`.
+
+---
+
+## ADR-018: Multi-horizon comparison — raw PR-AUC is not comparable across horizons
+
+**Decision:** `target_hotspot_15m/30m/60m/90m` all added to `targets.parquet`
+(extending `TARGET_WINDOWS_MINUTES` in `backend/app/features/targets.py`).
+CatBoost retrained per horizon on the same time-based split; results in
+`docs/horizon_comparison.csv`.
+
+**Critical finding — raw PR-AUC rises with horizon length (0.7834 → 0.8929
+from 15m to 90m) almost entirely because longer windows have a higher
+positive rate (60.5% → 72.4%)**, not because longer-horizon predictions are
+inherently better. A trivial "always predict positive" classifier would
+also score better PR-AUC at a higher base rate. Reporting raw PR-AUC across
+horizons without this caveat would be actively misleading.
+
+**Fix:** `lift_over_base_rate = PR-AUC / positive_rate` as a crude
+base-rate-normalized comparison (a random/always-positive classifier scores
+lift ≈1.0; higher means genuine skill above the trivial baseline). By this
+corrected metric, **shorter horizons actually have higher lift** (15m:
+1.294 vs 90m: 1.234) — the opposite conclusion from reading raw PR-AUC alone.
+
+**Recommendation:** see `docs/horizon_comparison.csv`/`MODEL_REPORT.md` for
+the final operational horizon choice — made using lift, not raw PR-AUC.

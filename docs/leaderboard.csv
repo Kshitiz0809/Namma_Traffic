@@ -14,3 +14,12 @@ experiment_C_h3_cell,val,catboost,0.8767,0.7316,0.962,0.8311,0.1766,0.3,,,,44767
 experiment_C_geohash,val,catboost,0.8759,0.7313,0.962,0.8309,0.1766,0.3,,,,44767,0.6995
 experiment_D_raw_counts_only,val,catboost,0.8701,0.7139,0.9788,0.8256,0.1837,0.2,,,,44767,0.6995
 experiment_D_full_rolling,val,catboost,0.8767,0.7316,0.962,0.8311,0.1766,0.3,,,,44767,0.6995
+calibration_baseline,test,catboost,0.8732,,,,0.1766,,,,,44767,
+calibration_platt,test,catboost,0.8732,,,,0.1755,,,,,44767,
+calibration_isotonic,test,catboost,0.8692,,,,0.1747,,,,,44767,
+spatial_holdout_seen,val,catboost,0.8833,0.7399,0.9626,0.8367,0.1728,0.3,,,,37032,0.7101
+spatial_holdout_unseen,val,catboost,0.8137,0.6906,0.964,0.8047,0.2073,0.3,,,,7289,0.6591
+horizon_15m,val,catboost,0.7834,0.6397,0.9504,0.7647,0.2101,0.25,,,,44767,0.6054
+horizon_30m,val,catboost,0.8337,0.6893,0.9518,0.7995,0.1949,0.3,,,,44767,0.6533
+horizon_60m,val,catboost,0.8767,0.7316,0.962,0.8311,0.1766,0.3,,,,44767,0.6995
+horizon_90m,val,catboost,0.8929,0.7526,0.9659,0.846,0.1667,0.3,,,,44767,0.7236
