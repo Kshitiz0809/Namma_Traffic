@@ -69,6 +69,19 @@ RAW_COUNT_ONLY_NUMERIC_FEATURES = [
     }
 ]
 
+# Reduced-spatial-identity variant (Phase 3.5/4 final robustness experiment,
+# DECISIONS.md ADR-019) — drops the direct spatial-grid identity columns
+# (h3_cell, geohash) that the spatial holdout test (ADR-016) and SHAP audit
+# (ADR-017) flagged as a memorization risk, while KEEPING every
+# density/rolling/temporal/aggregated-historical feature that describes a
+# cell's behavior without naming the cell itself. junction_name/police_station/
+# center_code are organizational identifiers, not grid-cell IDs, and are
+# deliberately NOT removed here — the experiment targets the specific
+# h3_cell/geohash dominance finding, not categorical features in general.
+REDUCED_SPATIAL_CATEGORICAL_FEATURES = [
+    c for c in CATEGORICAL_FEATURES if c not in {"h3_cell", "geohash"}
+]
+
 ALL_FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
 
 

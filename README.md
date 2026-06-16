@@ -350,6 +350,24 @@ Full writeup: **`docs/baseline_results.md`** ("Phase 3.5/4" section) and
   a single baseline comparison run — not the full ablation/calibration
   treatment the 60m target received.
 
+### Final robustness check — Reduced-Spatial-Identity Experiment ✅ (feature set now FROZEN)
+
+One last experiment before lock, per explicit instruction (single
+comparison, no architecture changes, no extra variants): does the model
+still work without `h3_cell`/`geohash` themselves? Model A = existing
+winner (not retrained). Model B = one new run with `h3_cell`/`geohash`
+removed, everything else (density, rolling, temporal, historical-risk,
+organizational categoricals) kept.
+
+**Result: PR-AUC drop of only 0.55% (0.8767 → 0.8719) → Spatial abstraction
+= PASS.** This does NOT contradict the spatial-holdout FAIL above — that
+measures cold-start failure on cells with zero history of any kind; this
+measures `h3_cell`'s marginal value for cells the model already has data
+on, which is small because other features already capture similar
+information. Full reasoning: `docs/spatial_dependency.md`. **Decision: keep
+`h3_cell`** (negligible robustness gain from removing it, for a real
+accuracy cost) — **feature set is now frozen** for Phase 5+.
+
 ---
 
 ## Phases 5–10

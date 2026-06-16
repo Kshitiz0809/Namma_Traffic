@@ -412,3 +412,40 @@ corrected metric, **shorter horizons actually have higher lift** (15m:
 
 **Recommendation:** see `docs/horizon_comparison.csv`/`MODEL_REPORT.md` for
 the final operational horizon choice — made using lift, not raw PR-AUC.
+
+---
+
+## ADR-019: Reduced-spatial-identity experiment — PASS, h3_cell kept, feature set frozen
+
+**Decision:** Final robustness check before feature lock. Model A (existing
+Phase 3 winner, not retrained) vs. Model B (ONE new training run with
+`h3_cell`/`geohash` removed from categorical features, everything else —
+density, rolling, temporal, aggregated-historical, and organizational
+categoricals like `junction_name`/`police_station` — unchanged). Result:
+**PR-AUC drop of only 0.55%** (0.8767 → 0.8719) on the same validation set.
+**Verdict: Spatial abstraction = PASS** (≤3% acceptance bar).
+
+**This does not contradict ADR-016's spatial-holdout FAIL.** The two
+experiments measure different things:
+- ADR-016 (spatial holdout): performance on cells **never seen at all**
+  during training — fails because almost every per-cell feature
+  (identity-based or not) starts cold for a genuinely new location.
+- ADR-019 (this experiment): marginal value of the **raw `h3_cell` ID
+  column itself**, for cells already seen — passes because that identity
+  information is largely redundant with the density/rolling/historical-risk
+  features and organizational categoricals already present.
+
+**Combined picture:** the model's spatial fragility is a cold-start problem
+affecting most historical-aggregate features broadly, not a dependency on
+`h3_cell`'s raw identity specifically. Full writeup: `docs/spatial_dependency.md`.
+
+**Decision: keep `h3_cell`.** Removing it buys negligible robustness (the
+cold-start issue isn't fixed by dropping it — untested here per the explicit
+"no additional variants" instruction, but reasoned through in the writeup)
+while giving up real accuracy (0.55%, plus the threshold shift from 0.30→0.35
+in Model B). Per explicit instruction, this result does NOT block deployment.
+
+**FEATURE SET IS NOW FROZEN.** No further feature additions/removals planned
+without revisiting this ADR explicitly. `MODEL_FEATURE_COLUMNS` (NUMERIC_FEATURES
++ CATEGORICAL_FEATURES in `backend/app/models/feature_set.py`) is the locked
+contract Phase 5+ builds on.

@@ -127,13 +127,35 @@ strong absolute performance, reasonable lift, practical enforcement lead
 time, and consistency with `congestion_score`/Phase 3 artifacts already
 built around this window. Full rationale: `docs/baseline_results.md`.
 
+## Final robustness check — Reduced-Spatial-Identity Experiment ✅
+
+One last experiment before feature lock (per explicit instruction: single
+comparison, no additional variants). Full writeup: `docs/spatial_dependency.md`.
+
+| | PR-AUC | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Model A (full set, with `h3_cell`) | 0.8767 | 0.7316 | 0.9620 | 0.8311 |
+| Model B (`h3_cell`/`geohash` removed) | 0.8719 | 0.7330 | 0.9644 | 0.8329 |
+
+**Drop: 0.55% → Spatial abstraction = PASS** (≤3% bar). Does not contradict
+the spatial-holdout FAIL above — that experiment measures cold-start failure
+on cells with zero history of ANY kind; this one measures `h3_cell`'s
+marginal value for cells the model already has history on, which turns out
+to be small because density/rolling/historical-risk features already
+capture most of the same signal. **Decision: keep `h3_cell`** — removing it
+buys negligible robustness for a real (if small) accuracy cost.
+
+**FEATURE SET IS NOW FROZEN.** `backend/app/models/feature_set.py`'s
+`NUMERIC_FEATURES` + `CATEGORICAL_FEATURES` is the locked contract for Phase 5+.
+
 ### Final operating recommendation (going into Phase 5)
 | Decision | Value |
 |---|---|
 | Operating threshold | **0.15** (was 0.30) |
 | Calibration | None (baseline probabilities) |
 | Operational horizon | **60 minutes** |
-| Spatial robustness | **FAIL** — model won't generalize to new geographic coverage without retraining |
+| Spatial robustness (new-geography generalization) | **FAIL** — model won't generalize to new geographic coverage without retraining. Does NOT block deployment within existing coverage (explicit instruction). |
+| Spatial abstraction (h3_cell marginal value) | **PASS** — `h3_cell` kept, feature set frozen |
 
 ## Phase 5+ — Congestion Impact / Alert Engine (not started)
 
