@@ -528,3 +528,50 @@ prediction — consistent with ADR-016's spatial-holdout finding.
   only the frozen models' outputs and existing engineered features. No
   external vehicle-size database, road-network data, or traffic feed of any
   kind was introduced for the vehicle-mix or junction-history logic.
+
+---
+
+## ADR-021: Phase 6 — Productization + Visualization
+
+**Decision: Next.js + Leaflet dashboard, 4 views, talking only to the
+already-frozen backend.** No model logic in the frontend — every number
+the dashboard shows comes from `/forecast`, `/alerts`, or `/metrics`. CORS
+opened (`allow_origins=["*"]`) since there's no auth/user-account system to
+protect and the deployed frontend origin isn't fixed in advance — explicitly
+flagged in `docs/api_contract.md` as a demo-appropriate choice to tighten later.
+
+**Decision: `/alerts` and `/metrics` compute a live snapshot, not a cached
+historical file.** `backend/app/serving/risk_snapshot.py` evaluates ALL
+2,534 known H3 cells' latest historical event through the frozen models on
+each process's first request, cached for the process lifetime. This
+produces a meaningfully different (much lower-risk) distribution than
+Phase 5's per-event validation sample (97% LOW vs. 58% LOW) — documented
+explicitly in `docs/api_contract.md` as expected, not a discrepancy: a
+single per-cell snapshot is calmer than a multi-event mix by construction.
+
+**Decision: deployment is prepare-only, not executed.** No Render/Vercel
+account credentials were available in this environment. `docker build` was
+not run end-to-end (disk-space constraint at authoring time — see below).
+`docs/deployment.md` documents the required pre-deploy step explicitly:
+the gitignored model/data artifacts must be regenerated locally before
+building the deploy image, since they aren't committed to the repo.
+
+**Decision: demo_seed.py replays REAL historical sequences, never
+synthetic/fabricated data.** Three scenarios, each anchored on a specific,
+verified real example (not "first match" or arbitrary picks): a hotspot
+growth surge at Elite Junction (2023-12-23, real timestamps), and a
+HIGH→CRITICAL escalation at Safina Plaza Junction (2024-02-23 03:35:46,
+a real MAXI-CAB violation). `docs/demo_scenarios.md` documents exactly how
+each example was found, so it's reproducible, not hand-tuned for effect.
+
+**Environmental constraint encountered and disclosed, not hidden:** this
+execution environment hit a hard disk-space wall (~206MB free) partway
+through Phase 6, causing a Chromium download (for screenshot automation)
+to fail with `ENOSPC`, and twice causing intermittent
+`numpy._core._exceptions._ArrayMemoryError` failures on routine
+`pd.read_parquet`/`sort_values` calls that succeeded cleanly on retry.
+Per explicit user decision, live browser screenshots were skipped this
+round (`docs/screenshots/README.md` documents each view's appearance in
+detail instead) rather than worked around at the cost of more disk churn.
+Space later recovered to ~6GB free — re-capturing real screenshots is a
+quick follow-up if desired, not a blocked task.

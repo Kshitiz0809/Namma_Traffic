@@ -1,0 +1,20 @@
+# Render Blueprint for the backend API. Deploy via Render's "New Blueprint
+# Instance" pointed at this repo, or configure the service manually in the
+# Render dashboard using these same settings. No secrets in this file
+# (explicit instruction) — see docs/deployment.md for what env vars to set
+# in the Render dashboard itself.
+
+services:
+  - type: web
+    name: parking-intelligence-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .          # REPO ROOT, not backend/ — see Dockerfile comment
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # PORT is injected automatically by Render — do not set manually.

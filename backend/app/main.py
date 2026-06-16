@@ -2,29 +2,48 @@
 FastAPI entrypoint.
 
 Phase 1: app boots, health check confirms the raw dataset is reachable.
-Phase 5: /forecast goes live (app/serving/forecast_service.py). Remaining
-endpoints (/heatmap, /alerts, /recommendation as dedicated routes) land in
-Phase 8 once the dashboard needs them directly.
+Phase 5: /forecast goes live (app/serving/forecast_service.py).
+Phase 6: /alerts, /metrics added (app/serving/{alerts,metrics}_service.py),
+CORS enabled for the Next.js dashboard, full API surface documented in
+docs/api_contract.md. OpenAPI docs are FastAPI's built-in /docs and /redoc
+— no separate generation step needed, just documented as available.
+
+CORS note: allow_origins=["*"] is intentionally permissive for this
+hackathon demo (the dashboard's exact deployed origin isn't known in
+advance, and there are no user accounts/auth to protect). Tighten to the
+real frontend origin before any production use beyond a demo.
 """
 
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.ingestion.load_data import load_and_validate
+from app.serving.alerts_service import router as alerts_router
 from app.serving.forecast_service import router as forecast_router
+from app.serving.metrics_service import router as metrics_router
 
 logging.basicConfig(level=settings.log_level, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Parking Intelligence + Predictive Alert Platform",
-    version="0.1.0",
+    version="0.6.0",
     description="Predicts where/when parking violations and congestion occur, and recommends enforcement action.",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 app.include_router(forecast_router)
+app.include_router(alerts_router)
+app.include_router(metrics_router)
 
 
 @app.get("/")

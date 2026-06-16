@@ -231,3 +231,32 @@ view both included for presenter flexibility.
   external data introduced for vehicle-mix or junction-history logic.
 - `risk_score` weights/bands are a documented starting point, not validated
   against real intervention outcomes (none exist in the provided dataset).
+
+## Phase 6 — Productization + Visualization ✅
+
+No model optimization this phase (explicit instruction) — feature set,
+models, thresholds, and risk formula all remain frozen from Phase 4/5.
+Full detail: ADR-021, `docs/final_checklist.md`.
+
+| Task | Deliverable | Verified |
+|---|---|---|
+| 1. Dashboard | Next.js + Leaflet, 4 views (`frontend/`) | `npm run build`/`lint` clean; live screenshots skipped (disk-space constraint, documented) |
+| 2. Backend integration | `/forecast`, `/alerts`, `/metrics`, `/health` + `docs/api_contract.md` + OpenAPI | All 4 endpoints live-tested, 200 OK, real data |
+| 3. Deployment | `backend/Dockerfile`, `render.yaml`, `frontend/vercel.json`, `docs/deployment.md` | Prepared, not deployed (no account credentials) — explicit scope decision |
+| 4. Demo mode | `backend/app/models/demo_seed.py` + `docs/demo_scenarios.md` | 3 real scenarios, 5/5 tests passing |
+| 5. Presentation assets | `architecture_diagram.png`, `system_flow.png`, `docs/screenshots/README.md`, `docs/ppt_outline.md` | Diagrams generated and reviewed; screenshots documented in lieu of live capture |
+| 6. Video prep | `docs/demo_script.md` (4-minute structure) | — |
+| 7. Final validation | `docs/final_checklist.md` | 58/58 tests passing, all endpoints + cold-start + notebook reproducibility verified live |
+
+### Real numbers from this phase
+- Live `/metrics` risk snapshot (2,534 cells): LOW 97.4%, MEDIUM 2.3%, HIGH
+  0.3% — much calmer than Phase 5's per-event validation distribution
+  (58/28/12/2%), expected per ADR-021's per-cell-vs-per-event distinction.
+- `npm run build`: compiles cleanly, 113kB first-load JS for the dashboard route.
+- 58/58 backend tests passing (full cumulative suite, Phases 1-6).
+
+### Environmental note (disclosed per ADR-021)
+This session hit a hard disk-space constraint (~206MB free) that blocked
+live screenshot capture and caused two transient memory-allocation errors
+(both resolved cleanly on retry — not a code defect). Documented in full
+in `docs/final_checklist.md` and ADR-021.

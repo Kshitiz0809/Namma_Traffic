@@ -445,7 +445,66 @@ against named-junctions-only statistics (median 0.013, not ~0.5).
 
 ---
 
-## Phases 6–10
+## Phase 6 — Productization + Visualization ✅
+
+No model optimization this phase — feature set, models, thresholds, and
+risk formula all remain frozen (Phase 4/5 lock). This phase wraps the
+frozen engine in a real dashboard, full API surface, and demo/deployment artifacts.
+
+### What was built
+- **Dashboard** (`frontend/`): Next.js 14 + Leaflet, 4 views — Live Risk Map,
+  Forecast Panel, Operations View, Analytics View. All data from the live API,
+  zero model logic in the frontend. `npm run build`/`lint` both pass clean.
+- **API**: `/alerts` and `/metrics` added alongside `/forecast`/`/health`
+  (CORS enabled). `docs/api_contract.md` + auto-generated OpenAPI docs (`/docs`, `/redoc`).
+- **Deployment prep** (not executed — no account credentials): `backend/Dockerfile`
+  updated for Render, `render.yaml`, `frontend/vercel.json`, `docs/deployment.md`,
+  env examples for both services.
+- **Demo mode**: `backend/app/models/demo_seed.py` replays 3 REAL scenarios
+  (not synthetic) — alert replay, a real hotspot-growth surge at Elite
+  Junction (2023-12-23), and a real HIGH→CRITICAL escalation at Safina
+  Plaza Junction. `docs/demo_scenarios.md`.
+- **Presentation assets**: `docs/architecture_diagram.png`, `docs/system_flow.png`
+  (both generated, reviewed), `docs/ppt_outline.md` (12 slides), `docs/demo_script.md`
+  (4-minute video script).
+- **Final validation**: `docs/final_checklist.md` — every endpoint, the
+  dashboard, cold-start behavior, and notebook reproducibility checked live
+  this session, not assumed.
+
+### How to run
+```bash
+# Backend
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# Frontend (separate terminal)
+cd frontend && cp .env.local.example .env.local && npm install && npm run dev
+# -> http://localhost:3000
+
+# Demo mode
+cd backend && python -m app.models.demo_seed all
+```
+
+### Real, verified results
+- **58/58 backend tests passing.**
+- Live `/metrics` snapshot over all 2,534 known cells: 97.4% LOW, 2.3%
+  MEDIUM, 0.3% HIGH — calmer than Phase 5's per-event distribution by
+  construction (one snapshot per cell vs. many events per cell), documented in ADR-021.
+- Dashboard production build: 113kB first-load JS, compiles clean.
+
+### Honest gaps in this phase (disclosed, not hidden)
+- **No live screenshots** — the environment hit a disk-space wall (~206MB
+  free) installing a headless browser; you opted to skip rather than wait.
+  Each view is described in detail in `docs/screenshots/README.md` instead.
+  Space has since recovered (~6GB free) if you want real screenshots later.
+- **No live deployment** — explicit scope decision (prepare-only); Render/Vercel
+  configs are ready, `docker build` wasn't run end-to-end in this environment.
+- Two transient memory-allocation errors occurred mid-phase, both resolved
+  cleanly on retry — tied to the disk-space constraint, not a code defect
+  (see ADR-021 for detail).
+
+---
+
+## Phases 7–10
 Not started yet. See the build prompt for full scope; each phase gets its own
 README section, architecture diagram update, and approval checkpoint before
 the next phase begins.
