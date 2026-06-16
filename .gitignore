@@ -18,10 +18,14 @@ data/processed/*.parquet
 *.csv
 !docs/**/*.csv
 
-# --- ML artifacts ---
+# --- ML artifacts (regenerable via `python -m app.models.train`) ---
 ml/models/*.pkl
 ml/models/*.joblib
+ml/models/*.cbm
+ml/models/*.txt
+ml/models/*.json
 mlruns/
+catboost_info/
 
 # --- Node / Next.js (frontend, from Phase 8) ---
 frontend/node_modules/

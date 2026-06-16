@@ -176,3 +176,113 @@ features (one-hot/target-encoded as needed) for a fair comparison.
 
 **Explainability:** SHAP added in Phase 3 scope (not Phase 2) since it
 explains a trained model, not a feature table.
+
+---
+
+## ADR-009: Live-availability exclusion — administrative/post-hoc columns are not model features
+
+**Decision:** `validation_status`, `validation_delay_minutes`,
+`enforcement_delay_minutes`, `resolution_time_minutes`, and
+`data_sent_to_scita` are excluded from the **model feature set**, even
+though they passed ADR-006's temporal leakage-safety check (they don't use
+future *rows*, just this row's own delayed fields).
+
+**Why this is a different kind of leakage than ADR-006 covers:** ADR-006
+guards against seeing future *events*. This guards against seeing future
+*knowledge about the current event*. `validation_status` is decided by a
+human reviewer, often days after `created_datetime` (audit: ~58% of rows
+still have a null `validation_timestamp`, meaning many cases sit unreviewed
+for a long time). A live alert system predicting "will this cell be a
+hotspot in the next 60 minutes" must fire on information available **at
+`created_datetime`** — it cannot wait for a review that hasn't happened yet.
+Including these columns would make offline metrics look better (the model
+partially learns "rejected/duplicate records correlate with different
+future patterns") in a way that's impossible to replicate in production.
+
+**What's still allowed:** these columns remain in `features.parquet`
+(nothing is deleted, per the general "flag don't drop" philosophy) and are
+used for descriptive/audit purposes — just excluded from `MODEL_FEATURE_COLUMNS`
+in `backend/app/models/feature_set.py`.
+
+---
+
+## ADR-010: Time-based split — train (earliest) / validation (middle) / test (latest)
+
+**Decision:** Split `features.parquet` by `created_datetime` into three
+contiguous, non-overlapping blocks: train = earliest 70%, validation = next
+15%, test = latest 15% (by row count after time-sorting, not by calendar
+date, so each split has a comparable sample size given uneven monthly
+volume — see `docs/data_quality_report.md`).
+
+**Why not random k-fold:** every leakage-safe rolling/historical feature
+(ADR-006) is still *time-correlated* — `hotspot_frequency` for a row in
+March implicitly reflects accumulated November-February activity. A random
+split would put temporally-adjacent rows (same cell, minutes apart) in both
+train and test, letting the model effectively memorize near-duplicate
+contexts rather than generalize. Time-based splitting is the only split
+that honestly simulates "train on the past, predict the future."
+
+**Consequence accepted:** the test set's class balance / feature
+distributions can differ from train's (e.g., if violations trend up over
+the months) — that's realistic, not a bug, and is reported rather than
+corrected for.
+
+---
+
+## ADR-011: Congestion score is a derived/reported metric, not a training target (yet)
+
+**Decision:** `congestion_score = 0.5×normalized_violation_count +
+0.3×hotspot_persistence + 0.2×enforcement_density` is computed in
+`backend/app/models/congestion_score.py` as a **descriptive output**, using
+only features already validated in Phase 2. It is NOT used as a model
+training target in Phase 3.
+
+**Component mapping (all internal, all leakage-safe):**
+- `normalized_violation_count` = `violation_density`, min-max scaled using
+  statistics fit on the **train split only** (scaling on val/test stats
+  would leak their distribution back into a score meant to generalize).
+- `hotspot_persistence` = `rolling_hotspot_intensity`, same train-fit scaling.
+- `enforcement_density` = `police_station_density`, same train-fit scaling.
+
+**Why not train on it directly yet:** it's a hand-weighted linear
+combination, not a ground-truth label — training a model to predict your
+own formula just re-learns the formula's algebra, not anything about real
+congestion outcomes. It's reported now so Phase 5 (Congestion Impact Engine)
+has a validated, documented starting formula; if Phase 5 needs a *learned*
+congestion score, that's a new ground-truth-label discussion, not a reuse
+of this one.
+
+---
+
+## ADR-012: Required ablation experiments (A-D) run on the winning baseline classifier
+
+**Decision:** four single-factor ablations, each comparing "with" vs
+"without" against the same baseline configuration, all measured on the
+*same* time-based validation split for comparability:
+- **A.** with vs without `is_outlier_coordinate` rows (168 rows)
+- **B.** with vs without `is_duplicate_vehicle_event` rows (9,521 rows)
+- **C.** H3-derived features vs GeoHash-derived features as the spatial key
+- **D.** raw counts (`hotspot_frequency` only) vs full rolling feature set
+  (`violations_last_15/30/60m`, `same_hour_previous_day`, `rolling_hotspot_intensity`)
+
+Each is a single-factor change so the effect is attributable — running all
+4 togglable choices as a full 2⁴ grid (16 runs) would cost more compute for
+marginal extra insight at this stage; if two factors show a surprising
+interaction, that's a candidate follow-up, not a default.
+
+---
+
+## ADR-013: Model feature set excludes free-text and high-cardinality identifier columns
+
+**Decision:** `location` (free-text address string), `vehicle_number`,
+`updated_vehicle_number`, `device_id`, `created_by_id` are excluded from
+`MODEL_FEATURE_COLUMNS`. `h3_cell`, `junction_name`, `police_station`,
+`center_code`, `vehicle_type`, `primary_offence_code`, `primary_violation_type`
+are kept as categorical features (cardinalities 17-2,534 — see
+`backend/app/models/feature_set.py` for the exact list and counts).
+
+**Why:** free-text/raw-identifier columns either have no usable structure
+for a tree model (`location` would need NLP, out of scope) or are
+near-unique-per-row identifiers that a tree model would overfit to as a
+memorization shortcut (`vehicle_number`, `device_id`) rather than learning
+generalizable patterns.

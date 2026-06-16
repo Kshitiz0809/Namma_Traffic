@@ -1,5 +1,5 @@
-# Phase 1+2 dependencies.
-# Later phases will add: lightgbm, xgboost, catboost, mlflow, kafka-python, etc.
+# Phase 1+2+3 dependencies.
+# Later phases will add: mlflow, kafka-python, etc.
 # Keeping requirements lean per-phase makes installs fast and failures easy to diagnose.
 # (Notebook/plotting-only deps live in ml/requirements.txt, not here — the
 # serving image never needs matplotlib/jupyter.)
@@ -19,3 +19,10 @@ pytest==8.3.3
 # Feature engineering (Phase 2) — runtime deps for backend/app/features/
 h3==4.5.0
 pygeohash==2.0.0
+
+# Modeling (Phase 3) — runtime deps for backend/app/models/
+catboost==1.2.10
+lightgbm==4.6.0
+xgboost==3.2.0
+scikit-learn==1.9.0
+shap==0.52.0

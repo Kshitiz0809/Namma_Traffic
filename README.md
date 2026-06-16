@@ -219,7 +219,71 @@ and a full-pipeline smoke test against the real 298,445-row dataset.
 
 ---
 
-## Phases 3–10
+## Phase 3 — Spatial Prediction Engine ✅
+
+Primary objective reframed per review: **`target_hotspot_60m` binary
+classification** is now the main model ("will this H3 area become a hotspot
+in the next 60 minutes?"), with `target_count_60m` regression as a secondary
+severity signal, and `congestion_score` computed as a derived/reported
+metric only — not trained on directly this phase (DECISIONS.md ADR-011).
+
+### What was built
+- **5 new ADRs** (ADR-009 through ADR-013): live-availability exclusion of
+  post-hoc admin columns, time-based split rationale, congestion-score
+  definition, the 4 required ablation experiments, and the model feature set
+- **`backend/app/models/`**: `split.py` (time-based train/val/test),
+  `feature_set.py` (the live-prediction-safe feature list), `congestion_score.py`,
+  `classifier.py` (CatBoost/LightGBM/XGBoost for the primary target),
+  `regressor.py` (same 3 models for the secondary target), `explain.py` (SHAP),
+  `experiments.py` (ablations A-D), `train.py` (orchestrator)
+- **`docs/baseline_results.md`** — full model comparison, confusion matrix,
+  calibration discussion, SHAP table, all 4 ablation experiments with honest
+  caveats (e.g. Experiment C only swaps the categorical key, not the full
+  spatial feature set)
+- **`docs/leaderboard.csv`** — machine-readable results
+- **`ml/notebooks/03_model_comparison.ipynb`** — confusion matrix heatmap,
+  PR curve, calibration curve, SHAP summary plot, sample TP/FP/FN forecasts
+- **6 saved models** in `ml/models/` (classifier + regressor × 3 libraries)
+- **19/19 tests passing** (12 from Phase 1-2 + 7 new: split correctness,
+  dtype casting, congestion-score bounds, metric sanity, a real-data smoke test)
+
+### How to run
+```bash
+cd backend
+pip install -r requirements.txt          # now includes catboost, lightgbm, xgboost, sklearn, shap
+python -m app.models.train                # ~9 minutes — trains everything, runs experiments A-D
+pytest -v                                 # 19 tests, ~75s
+```
+Notebook: `jupyter nbconvert --to notebook --execute --inplace ml/notebooks/03_model_comparison.ipynb`
+
+### Real results (CatBoost won both objectives)
+| Objective | Metric | Value |
+|---|---|---|
+| `target_hotspot_60m` (val) | PR-AUC | 0.8767 |
+| `target_hotspot_60m` (test) | PR-AUC | 0.8732 |
+| `target_count_60m` (val) | MAE / R² | 5.92 / 0.271 |
+
+Full tables, confusion matrix, calibration, SHAP, and all 4 ablation results:
+**`docs/baseline_results.md`**.
+
+### Honest limitations (see `MODEL_REPORT.md` for details)
+- Model is recall-leaning at its F1-optimal threshold (96.5% recall, 17.4%
+  true-negative rate) — fine for "don't miss a hotspot," risky if read as
+  "act on every positive prediction." Phase 6 must choose its own threshold.
+- Calibration is moderate (Brier 0.1766), not exact.
+- Experiment C isolates only the categorical spatial key, not a full
+  H3-vs-GeoHash feature-set rebuild — flagged, not glossed over.
+
+### Next risks
+- `congestion_score` weights (0.5/0.3/0.2) are stated, not learned or
+  validated against real outcomes — Phase 5 should treat it as a starting
+  point, not ground truth.
+- Duplicate-vehicle-event rows showed a small, consistent improvement when
+  excluded (Experiment B) — not acted on yet, worth a closer look before Phase 4.
+
+---
+
+## Phases 4–10
 Not started yet. See the build prompt for full scope; each phase gets its own
 README section, architecture diagram update, and approval checkpoint before
 the next phase begins.
