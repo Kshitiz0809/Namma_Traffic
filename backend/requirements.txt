@@ -1,0 +1,15 @@
+# Phase 1 dependencies only.
+# Later phases will add: lightgbm, xgboost, geopandas, mlflow, kafka-python, etc.
+# Keeping requirements lean per-phase makes installs fast and failures easy to diagnose.
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pandas==2.2.2
+pyarrow==17.0.0
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-dotenv==1.0.1
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
+redis==5.0.8
+pytest==8.3.3

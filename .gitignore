@@ -1,0 +1,38 @@
+# --- Environment ---
+.env
+*.env.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Data (large/raw files don't belong in git) ---
+data/raw/*.csv
+data/processed/*.parquet
+*.csv
+!docs/**/*.csv
+
+# --- ML artifacts ---
+ml/models/*.pkl
+ml/models/*.joblib
+mlruns/
+
+# --- Node / Next.js (frontend, from Phase 8) ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.log
