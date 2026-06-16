@@ -1,0 +1,36 @@
+{
+  "total_rows": 298450,
+  "duplicate_full_rows": 0,
+  "duplicate_ids": 0,
+  "duplicate_vehicle_timestamp_pairs": 9521,
+  "min_created_datetime": "2023-11-09 19:11:46+00:00",
+  "max_created_datetime": "2024-04-08 17:30:46+00:00",
+  "monthly_distribution": {
+    "2023-11": 44117,
+    "2023-12": 63554,
+    "2024-01": 65813,
+    "2024-02": 54650,
+    "2024-03": 55229,
+    "2024-04": 15082
+  },
+  "missing_datetime_counts": {
+    "created_datetime": 5,
+    "closed_datetime": 298450,
+    "modified_datetime": 0,
+    "action_taken_timestamp": 298450,
+    "data_sent_to_scita_timestamp": 256289,
+    "validation_timestamp": 125420
+  },
+  "coords_missing": 0,
+  "coords_zero_zero": 0,
+  "coords_out_of_bengaluru_bbox": 168,
+  "coords_exact_duplicate_pairs": 135663,
+  "validation_status_counts": {
+    "approved": 115400,
+    "rejected": 49754,
+    "created1": 7044,
+    "processing": 678,
+    "duplicate": 320
+  },
+  "validation_status_missing": 125254
+}
