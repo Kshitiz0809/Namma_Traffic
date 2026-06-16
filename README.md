@@ -370,7 +370,82 @@ accuracy cost) — **feature set is now frozen** for Phase 5+.
 
 ---
 
-## Phases 5–10
+## Phase 5 — Parking-Induced Congestion Risk Engine ✅
+
+**Renamed from "Congestion Impact Engine"** per review: the system estimates
+operational risk derived from parking violation behavior, not measured
+traffic congestion. Feature set remains frozen (Phase 4 lock) — no
+retraining this phase, only derived scoring/rules/serving on top of the
+existing frozen models.
+
+### What was built
+- **`backend/app/models/risk_score.py`** — `risk_score` (0-100), a derived
+  score (NOT a new ML target) from the frozen classifier + regressor outputs
+  plus `rolling_hotspot_intensity`/`violations_last_15m`. Data-driven band
+  cutoffs (34.0/45.1/54.2) — fixed 40/60/80 was tried first and rejected for
+  leaving CRITICAL empty. Full derivation: `docs/risk_definition.md`.
+- **`backend/app/models/recommendation.py`** + **`docs/recommendation_rules.yaml`**
+  — rule-based (no LLM) Monitor/Patrol/Deploy enforcement/Tow operation
+  candidate, with vehicle-mix + junction-history escalation rules.
+- **`backend/app/models/alerts.py`** → **`docs/alerts.json`** — GREEN/YELLOW/
+  ORANGE/RED alerts with zone, probability, risk, and top contributing factors.
+- **`backend/app/serving/forecast_service.py`** — `GET /forecast`, wired into
+  the FastAPI app, tested via `TestClient` across 4 scenarios.
+- **`ml/notebooks/simulator.ipynb`** — threshold/risk-level scenario explorer
+  (PPT demo only, explicit scope).
+- **ADR-020** (DECISIONS.md) — full Phase 5 design rationale.
+
+### How to run
+```bash
+cd backend
+pip install -r requirements.txt              # adds pyyaml
+python -m app.models.generate_phase5_artifacts  # -> docs/alerts.json + distributions
+uvicorn app.main:app --reload --port 8000
+# curl "http://localhost:8000/forecast?h3_cell=89618925c03ffff"
+```
+
+### Real results
+- **Risk distribution** (validation set, 44,767 rows): LOW 58.1%, MEDIUM
+  27.6%, HIGH 11.9%, CRITICAL 2.4%.
+- **Recommendations**: Monitor 26,013, Patrol 12,281, Deploy enforcement
+  5,373, Tow operation candidate 1,100. 64 escalations triggered by the
+  vehicle-mix/junction-history rules.
+- **Alerts**: 60 representative alerts generated (20 per non-LOW level).
+- **API**: `/forecast?h3_cell=89618925c03ffff` → hotspot_probability 0.625,
+  predicted_count 7.6, congestion_risk 27.92, risk_band LOW, recommendation
+  Monitor, confidence 0.251. Vehicle-type override (e.g. to a heavy/commercial
+  type) correctly raises the probability and confidence.
+- **Simulator**: at threshold 45.0, only 25 of 1,423 distinct zones account
+  for 6,498 of 44,767 flagged rows — a small set of hotspots drives most volume.
+
+### A real data quirk found and worked around
+`junction_name == "No Junction"` is ~49.5% of all rows — a placeholder, not
+a real location — which inflates that category's historical-risk share to
+~0.5 (looks like "the most concentrated junction" but isn't a real signal).
+The escalation rule explicitly excludes it and calibrates its threshold
+against named-junctions-only statistics (median 0.013, not ~0.5).
+
+### Two real bugs caught while building the forecast service
+1. `.set_index("h3_cell")` silently dropped `h3_cell` from the row's own
+   columns, breaking every known-cell request — fixed by restoring it after lookup.
+2. A full `sort_values()` on the 298k-row features table hit a memory
+   allocation failure in one execution context — replaced with `idxmax()`
+   (one pass, no full-table sort).
+
+### Known limitations (explicit Task 6 requirement)
+- **Cold-start geography** — confirmed by Phase 3.5's spatial holdout FAIL;
+  the forecast service returns a conservative default for unseen cells.
+- **Missing enforcement timestamps** — `closed_datetime`/`action_taken_timestamp`
+  are 100% missing (Phase 2 finding); the risk/recommendation engines never
+  depend on them.
+- **Internal-data-only constraint** maintained — no external data introduced
+  for vehicle-mix classification or junction-history logic.
+- `risk_score` weights and band cutoffs are a documented starting point, not
+  validated against real intervention outcomes (none exist in this dataset).
+
+---
+
+## Phases 6–10
 Not started yet. See the build prompt for full scope; each phase gets its own
 README section, architecture diagram update, and approval checkpoint before
 the next phase begins.

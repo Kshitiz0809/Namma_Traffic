@@ -157,8 +157,77 @@ buys negligible robustness for a real (if small) accuracy cost.
 | Spatial robustness (new-geography generalization) | **FAIL** — model won't generalize to new geographic coverage without retraining. Does NOT block deployment within existing coverage (explicit instruction). |
 | Spatial abstraction (h3_cell marginal value) | **PASS** — `h3_cell` kept, feature set frozen |
 
-## Phase 5+ — Congestion Impact / Alert Engine (not started)
+## Phase 5 — Parking-Induced Congestion Risk Engine ✅
 
-`congestion_score` from Phase 3 is the starting formula. Not yet calibrated
-against real outcomes. Alert engine should use the **0.15 threshold**
-(Phase 3.5 Task 1), not Phase 3's original 0.30.
+Renamed from "Congestion Impact Engine" per review (estimates risk from
+parking behavior, not measured traffic congestion). Full details:
+`docs/risk_definition.md`, `docs/recommendation_rules.yaml`, `docs/alerts.json`,
+`docs/spatial_dependency.md`'s sibling docs, DECISIONS.md ADR-020.
+
+### Task 1 — Risk score (derived, NOT a new ML target)
+```
+risk_score = 100 * (0.40*hotspot_probability + 0.30*normalized_predicted_count
+                   + 0.20*persistence + 0.10*recent_intensity)
+```
+Uses the FROZEN Phase 3 classifier + regressor (no retraining). Bands are
+**data-driven** (train-period percentiles), not arbitrary round numbers —
+fixed 40/60/80 cutoffs were tried first and left CRITICAL empty:
+
+| Band | Score range | Validation population |
+|---|---|---|
+| LOW | 0-34.0 | 58.1% |
+| MEDIUM | 34.0-45.1 | 27.6% |
+| HIGH | 45.1-54.2 | 11.9% |
+| CRITICAL | 54.2+ | 2.4% |
+
+### Task 2 — Recommendation engine (rule-based YAML, no LLM)
+Base action from risk band (Monitor/Patrol/Deploy enforcement/Tow operation
+candidate), escalated one level when vehicle mix (high-obstruction types)
+AND junction history (named-junction concentration) both support it.
+**Data quirk found and worked around**: `junction_name == "No Junction"` is
+~49.5% of rows and inflates that category's historical-risk share to ~0.5 —
+excluded from the escalation rule, which is calibrated against
+named-junctions-only statistics instead.
+
+On the validation set: 64 escalations out of 44,767 rows; recommendation
+counts — Monitor 26,013, Patrol 12,281, Deploy enforcement 5,373, Tow
+operation candidate 1,100.
+
+### Task 3 — Alert layer
+LOW/MEDIUM/HIGH/CRITICAL → GREEN/YELLOW/ORANGE/RED, using the FINAL
+(post-escalation) band. Each alert includes zone, probability, risk score,
+and top-2 contributing factors (read off the risk_score's own weighted
+components). `docs/alerts.json`: 60 representative alerts (20 per
+non-LOW level, highest-risk-score first — not an exhaustive log).
+
+### Task 4 — Forecast service (`GET /forecast`)
+`backend/app/serving/forecast_service.py`, wired into `backend/app/main.py`.
+Accepts `h3_cell` OR `lat`+`lon`, optional `vehicle_type` override. Returns
+`hotspot_probability`, `predicted_count`, `congestion_risk`, `risk_band`,
+`recommendation`, `confidence` (heuristic: `|probability - 0.5| * 2`, NOT a
+calibrated interval per Phase 3.5's calibration findings), plus
+`top_contributing_factors` and cold-start handling. Tested via FastAPI
+`TestClient` across 4 scenarios (known cell, vehicle-type override, lat/lon
+resolution, cold start) — all correct. **Caveat**: approximates "current
+state" from the last historical snapshot per cell (no live streaming yet —
+Phase 7); only time-of-day features are recomputed against the real clock.
+
+Two real bugs caught and fixed while building this (see ADR-020 for detail):
+an index/column mixup that broke every known-cell request, and a memory
+allocation failure from a full-table sort, fixed by switching to `idxmax()`.
+
+### Task 5 — Scenario simulator (PPT demo only)
+`ml/notebooks/simulator.ipynb`. At threshold 45.0: 6,498/44,767 rows flagged
+(14.5%) across only 25 of 1,423 distinct zones — a concentrated set of
+hotspots drives most of the flagged volume. Threshold sweep + risk-level
+view both included for presenter flexibility.
+
+### Known limitations (Task 6, explicit requirement)
+- **Cold-start geography** — confirmed by ADR-016; forecast service returns
+  a conservative default for unseen cells rather than a fabricated number.
+- **Missing enforcement timestamps** — `closed_datetime`/`action_taken_timestamp`
+  100% missing (Phase 2); risk/recommendation engines never depend on them.
+- **Internal-data-only constraint** (ADR-001) maintained throughout — no
+  external data introduced for vehicle-mix or junction-history logic.
+- `risk_score` weights/bands are a documented starting point, not validated
+  against real intervention outcomes (none exist in the provided dataset).

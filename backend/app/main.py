@@ -1,9 +1,10 @@
 """
 FastAPI entrypoint.
 
-Phase 1 scope: app boots, exposes a health check, and confirms the raw dataset
-is present and schema-valid. Real endpoints (/heatmap, /forecast, /alerts,
-/recommendation) are built in Phase 8 once the models behind them exist.
+Phase 1: app boots, health check confirms the raw dataset is reachable.
+Phase 5: /forecast goes live (app/serving/forecast_service.py). Remaining
+endpoints (/heatmap, /alerts, /recommendation as dedicated routes) land in
+Phase 8 once the dashboard needs them directly.
 """
 
 import logging
@@ -12,6 +13,7 @@ from fastapi import FastAPI
 
 from app.core.config import settings
 from app.ingestion.load_data import load_and_validate
+from app.serving.forecast_service import router as forecast_router
 
 logging.basicConfig(level=settings.log_level, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -21,6 +23,8 @@ app = FastAPI(
     version="0.1.0",
     description="Predicts where/when parking violations and congestion occur, and recommends enforcement action.",
 )
+
+app.include_router(forecast_router)
 
 
 @app.get("/")

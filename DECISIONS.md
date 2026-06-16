@@ -247,7 +247,10 @@ training target in Phase 3.
 **Why not train on it directly yet:** it's a hand-weighted linear
 combination, not a ground-truth label — training a model to predict your
 own formula just re-learns the formula's algebra, not anything about real
-congestion outcomes. It's reported now so Phase 5 (Congestion Impact Engine)
+congestion outcomes. It's reported now so Phase 5 (Parking-Induced Congestion Risk Engine —
+renamed from "Congestion Impact Engine" per Phase 5 review: the system
+estimates operational risk derived from parking behavior, not measured
+traffic congestion)
 has a validated, documented starting formula; if Phase 5 needs a *learned*
 congestion score, that's a new ground-truth-label discussion, not a reuse
 of this one.
@@ -449,3 +452,79 @@ in Model B). Per explicit instruction, this result does NOT block deployment.
 without revisiting this ADR explicitly. `MODEL_FEATURE_COLUMNS` (NUMERIC_FEATURES
 + CATEGORICAL_FEATURES in `backend/app/models/feature_set.py`) is the locked
 contract Phase 5+ builds on.
+
+---
+
+## ADR-020: Phase 5 — Parking-Induced Congestion Risk Engine
+
+**Renamed from "Congestion Impact Engine"** per explicit review feedback:
+the system estimates operational risk derived from parking VIOLATION
+behavior, not measured traffic congestion — the old name overclaimed what
+the data and models actually support.
+
+**Decision: `risk_score` is a derived score, NOT a new ML target** (explicit
+instruction). Computed from the FROZEN Phase 3 model outputs (classifier +
+regressor, neither retrained) plus existing leakage-safe features:
+
+```
+risk_score = 100 * (0.40*hotspot_probability + 0.30*normalized_predicted_count
+                   + 0.20*persistence + 0.10*recent_intensity)
+```
+
+Full derivation, normalization, and band-threshold reasoning:
+`docs/risk_definition.md`. Notably, **fixed 40/60/80 band cutoffs were tried
+first and rejected** — they left the CRITICAL band almost empty since the
+real score distribution tops out around 65-82, not 100 (the 4 components
+rarely all peak simultaneously). Replaced with train-period-fit percentile
+cutoffs (34.0/45.1/54.2), which is the same "fit scaling on train only"
+discipline as ADR-011's `congestion_score` and ADR-005's leakage-safety norms.
+
+**Decision: recommendation engine is rule-based YAML, no LLM** (explicit
+instruction). `docs/recommendation_rules.yaml` + `backend/app/models/recommendation.py`.
+Found and worked around a real data quirk while building this: `junction_name
+== "No Junction"` accounts for ~49.5% of all rows, which inflates that
+category's `junction_historical_risk` to ~0.5 — not a genuine concentration
+signal. The junction-history escalation rule explicitly excludes that
+category and calibrates its threshold (0.05) against the NAMED-junction-only
+distribution (median 0.013, 90th pct 0.051), not the contaminated full population.
+
+**Decision: alert layer maps risk bands to colors 1:1** (LOW→GREEN,
+MEDIUM→YELLOW, HIGH→ORANGE, CRITICAL→RED) using the FINAL (post-escalation)
+band, not the raw pre-escalation band — an alert should reflect what the
+recommendation engine actually decided, not an intermediate state.
+"Top contributing factors" are read off the risk_score's own weighted
+component contributions (cheap, directly tied to that score) rather than
+recomputing SHAP per alert (would require per-row SHAP at alert-generation
+time — disproportionate cost for a derived, non-ML-trained score).
+
+**Decision: forecast service approximates "current state" from the latest
+historical snapshot per H3 cell**, since no live streaming pipeline exists
+yet (Phase 7). `hour`/`weekday`/cyclic-time features ARE recomputed against
+the real current timestamp at request time; density/rolling/historical-risk
+features are frozen at the last known event for that cell. This is a
+documented approximation (see `backend/app/serving/forecast_service.py`
+docstring), not a claim of real-time accuracy. Cold-start cells (no
+historical data) get a conservative default response, not a fabricated
+prediction — consistent with ADR-016's spatial-holdout finding.
+
+**Two bugs found and fixed while building the forecast service:**
+1. `_latest_by_cell.set_index("h3_cell")` silently dropped `h3_cell` from
+   the row's own columns, breaking feature-vector construction for every
+   known-cell request. Fixed by restoring it onto the row after lookup.
+2. A full `sort_values()` + `groupby().tail(1)` on the 298k-row features
+   table triggered a memory allocation failure in one execution context.
+   Replaced with `groupby().idxmax()` (one pass, no full-table sort).
+
+### Known limitations carried forward (explicit Task 6 requirement)
+- **Cold-start geography**: confirmed by ADR-016 (spatial holdout FAIL,
+  7.88% PR-AUC drop on unseen H3 cells) — the forecast service's cold-start
+  path returns a conservative default rather than a number it can't stand behind.
+- **Missing enforcement timestamps**: `closed_datetime` and
+  `action_taken_timestamp` are 100% missing in this dataset (Phase 2 audit)
+  — `resolution_time_minutes` carries no signal; the risk/recommendation
+  engines never depend on it.
+- **Internal-data-only constraint** (ADR-001) holds throughout Phase 5 —
+  `risk_score`, `recommendation_rules.yaml`, and `forecast_service.py` use
+  only the frozen models' outputs and existing engineered features. No
+  external vehicle-size database, road-network data, or traffic feed of any
+  kind was introduced for the vehicle-mix or junction-history logic.

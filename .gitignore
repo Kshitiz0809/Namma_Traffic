@@ -24,6 +24,7 @@ ml/models/*.joblib
 ml/models/*.cbm
 ml/models/*.txt
 ml/models/*.json
+!ml/models/risk_minmax_params.json
 mlruns/
 catboost_info/
 

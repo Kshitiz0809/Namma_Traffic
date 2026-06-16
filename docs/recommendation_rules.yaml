@@ -1,0 +1,89 @@
+# Phase 5 Task 2 — Operational Recommendation Engine rules.
+# Rule-based only, no LLM (explicit instruction). Read + applied by
+# backend/app/models/recommendation.py.
+#
+# Base action comes from risk_score's band (docs/risk_definition.md).
+# Escalation rules bump the action up one level when vehicle mix and
+# junction history both support it -- never de-escalate (a rule-based
+# system should never talk itself OUT of caution).
+
+risk_bands:
+  LOW:
+    action: Monitor
+    description: >
+      No elevated signal. No action needed beyond passive monitoring.
+  MEDIUM:
+    action: Patrol
+    description: >
+      At least one risk component elevated. Route a patrol past this
+      location during the next pass, not an immediate dispatch.
+  HIGH:
+    action: Deploy enforcement
+    description: >
+      Multiple risk components elevated together -- model confidence,
+      predicted severity, and recent/sustained activity all align.
+      Dispatch enforcement now.
+  CRITICAL:
+    action: Tow operation candidate
+    description: >
+      Top ~3% of risk scores. Strong candidate for a tow operation,
+      not just a patrol -- pending the escalation checks below.
+
+# Vehicle obstruction classification -- internal-data-only (vehicle_type
+# column), no external vehicle-size database. "High obstruction" = vehicle
+# types that occupy more road width/length when illegally parked, based on
+# the dataset's own category names (commercial/multi-axle/large vehicles).
+vehicle_mix:
+  high_obstruction_types:
+    - MAXI-CAB
+    - LGV
+    - GOODS AUTO
+    - PRIVATE BUS
+    - VAN
+    - TEMPO
+    - "BUS (BMTC/KSRTC)"
+    - HGV
+    - LORRY/GOODS VEHICLE
+    - JEEP
+    - TOURIST BUS
+    - SCHOOL VEHICLE
+    - TANKER
+    - FACTORY BUS
+    - MINI LORRY
+    - TRACTOR
+  low_obstruction_types:
+    - SCOOTER
+    - CAR
+    - MOTOR CYCLE
+    - PASSENGER AUTO
+    - MOPED
+    - OTHERS
+
+# Junction history flag. KNOWN DATA QUIRK (see docs/risk_definition.md /
+# DECISIONS.md): ~49.5% of rows have junction_name == "No Junction" (a
+# default/placeholder, not a real location), which inflates that category's
+# junction_historical_risk to ~0.5 -- NOT a genuine concentration signal.
+# Excluding it, named junctions have a much smaller, more meaningful scale
+# (median 0.013, 90th pct 0.051). The flag threshold below is calibrated to
+# that *named-junction* distribution, not the contaminated full population.
+junction_history:
+  exclude_category: "No Junction"
+  flag_threshold: 0.05   # ~90th percentile among NAMED junctions only
+
+# Escalation: bump the action one level up when both vehicle mix and
+# junction history support it. Applied in order; only one escalation step
+# per recommendation (no double-escalation LOW->HIGH in one rule).
+escalation_rules:
+  - name: medium_to_high_obstruction_at_known_hotspot_junction
+    when:
+      risk_band: MEDIUM
+      vehicle_mix: high_obstruction
+      junction_history_flag: true
+    escalate_to: HIGH
+
+  - name: high_to_critical_obstruction_at_known_hotspot_junction
+    when:
+      risk_band: HIGH
+      vehicle_mix: high_obstruction
+      junction_history_flag: true
+    escalate_to: CRITICAL
