@@ -54,57 +54,34 @@ export default function AnalyticsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-1">
-            Live risk distribution
-          </h3>
-          <p className="text-xs text-slate-400 mb-2">
-            {metrics.live_risk_distribution.total_cells} zones evaluated right now
-          </p>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={bandData}
-                  dataKey="count"
-                  nameKey="band"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={(entry: { name?: string; value?: number }) =>
-                    `${entry.name}: ${entry.value}`
-                  }
-                >
-                  {bandData.map((entry) => (
-                    <Cell key={entry.band} fill={BAND_COLOR[entry.band]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="card p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-1">
-            Model comparison (validation PR-AUC)
-          </h3>
-          <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
-            <Trophy size={12} className="text-amber-500" />
-            Winner: <span className="font-medium text-slate-600">{metrics.model.winner}</span>
-          </p>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modelData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="model" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 1]} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="pr_auc" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="card p-5">
+        <h3 className="text-sm font-semibold text-slate-700 mb-1">
+          Live risk distribution
+        </h3>
+        <p className="text-xs text-slate-400 mb-2">
+          {metrics.live_risk_distribution.total_cells} zones evaluated right now
+        </p>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={bandData}
+                dataKey="count"
+                nameKey="band"
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                label={(entry: { name?: string; value?: number }) =>
+                  `${entry.name}: ${entry.value}`
+                }
+              >
+                {bandData.map((entry) => (
+                  <Cell key={entry.band} fill={BAND_COLOR[entry.band]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -151,6 +128,27 @@ export default function AnalyticsView() {
           </div>
         </div>
       </section>
+
+      <div className="card p-5">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-1">
+          Model comparison (validation PR-AUC)
+        </h3>
+        <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
+          <Trophy size={12} className="text-amber-500" />
+          Winner: <span className="font-medium text-slate-600">{metrics.model.winner}</span>
+        </p>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={modelData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="model" tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, 1]} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="pr_auc" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       <section>
         <h3 className="text-sm font-semibold text-slate-700 mb-3">Model health</h3>
