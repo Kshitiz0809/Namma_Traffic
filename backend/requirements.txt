@@ -18,7 +18,7 @@ pytest==8.3.3
 
 # Feature engineering (Phase 2) — runtime deps for backend/app/features/
 h3==4.5.0
-pygeohash==2.0.0
+pygeohash==3.3.0
 
 # Modeling (Phase 3) — runtime deps for backend/app/models/
 catboost==1.2.10

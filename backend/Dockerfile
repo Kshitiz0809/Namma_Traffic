@@ -4,7 +4,7 @@
 # expects ml/, data/, docs/ as siblings of backend/ inside the image,
 # mirroring the real repo layout. Render's "Root Directory" setting
 # should be left at the repo root for this reason (see docs/deployment.md).
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt backend/requirements.txt
-RUN pip install --no-cache-dir -r backend/requirements.txt
+RUN pip install --no-cache-dir --default-timeout=120 -r backend/requirements.txt
 
 # Backend code.
 COPY backend/ backend/
