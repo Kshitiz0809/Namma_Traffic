@@ -7,6 +7,7 @@ import type {
   ForecastResponse,
   HealthResponse,
   MetricsResponse,
+  ReplayResponse,
 } from "./types";
 
 const API_BASE_URL =
@@ -52,6 +53,10 @@ export function getAlerts(params: {
 
 export function getMetrics() {
   return getJson<MetricsResponse>("/metrics");
+}
+
+export function getReplay(scenario: string) {
+  return getJson<ReplayResponse>(`/replay/${scenario}`);
 }
 
 export { API_BASE_URL };

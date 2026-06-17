@@ -1,6 +1,13 @@
 # Phase 1 infra: Postgres + Redis + the FastAPI backend.
 # Kafka/Zookeeper are added in Phase 7 (streaming pipeline) and MLflow in Phase 9,
 # kept out for now so `docker compose up` stays fast and easy to reason about.
+#
+# Phase 7 update: backend build context/dockerfile path fixed to match the
+# Phase 6 Dockerfile, which now expects the REPO ROOT as context (it copies
+# ml/, data/, docs/ as siblings of backend/ inside the image — see
+# backend/Dockerfile's header comment). Postgres/Redis are kept available
+# for future phases but the backend no longer waits on them — the current
+# API reads parquet files directly and doesn't connect to either yet.
 
 services:
   postgres:
@@ -35,22 +42,14 @@ services:
 
   backend:
     build:
-      context: ../backend
-      dockerfile: Dockerfile
+      context: ..              # repo root — required, see backend/Dockerfile header
+      dockerfile: backend/Dockerfile
     container_name: parking_backend
     restart: unless-stopped
     env_file:
       - ../.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     ports:
       - "8000:8000"
-    volumes:
-      - ../data:/app/data
-      - ../backend:/app
 
 volumes:
   postgres_data:

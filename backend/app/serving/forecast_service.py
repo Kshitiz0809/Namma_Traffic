@@ -31,6 +31,7 @@ import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor
 from fastapi import APIRouter, HTTPException, Query
 
+from app.models.carriageway_impact import compute_carriageway_impact
 from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 from app.models.recommendation import load_rules, recommend
 from app.models.risk_score import RiskMinMaxParams, compute_risk_score
@@ -74,6 +75,9 @@ def _load_state() -> None:
     # table (a full sort hit an allocation failure in some constrained
     # execution contexts; idxmax only needs one pass over created_datetime).
     features = pd.read_parquet(PROCESSED_DIR / "features.parquet")
+    # Computed over full per-cell history before reducing to "latest row per
+    # cell" -- see risk_snapshot.py for the same ordering and why.
+    features = compute_carriageway_impact(features, _recommendation_rules)
     latest_idx = features.groupby("h3_cell")["created_datetime"].idxmax()
     _latest_by_cell = features.loc[latest_idx].set_index("h3_cell")
 
@@ -125,6 +129,8 @@ def _cold_start_response(cell: str) -> dict:
         "confidence": 0.0,
         "top_contributing_factors": [],
         "is_cold_start": True,
+        "carriageway_impact_score": 0.0,
+        "carriageway_impact_label": "Minimal",
         "note": (
             "No historical data for this H3 cell — model is not validated to "
             "generalize confidently to unseen cells (see DECISIONS.md ADR-016). "
@@ -194,4 +200,6 @@ def forecast(
         "is_cold_start": False,
         "last_known_event": str(snapshot["created_datetime"]),
         "escalated": rec.escalated,
+        "carriageway_impact_score": round(float(snapshot["carriageway_impact_score"]), 2),
+        "carriageway_impact_label": snapshot["carriageway_impact_label"],
     }

@@ -4,6 +4,7 @@
 // /metrics (all real numbers from docs/leaderboard.csv, never recomputed
 // by this page) plus a live risk-band breakdown.
 
+import { Info, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -22,10 +23,10 @@ import { getMetrics } from "@/lib/api";
 import type { MetricsResponse } from "@/lib/types";
 
 const BAND_COLOR: Record<string, string> = {
-  LOW: "#2e7d32",
-  MEDIUM: "#f9a825",
-  HIGH: "#ef6c00",
-  CRITICAL: "#c62828",
+  LOW: "#22c55e",
+  MEDIUM: "#f59e0b",
+  HIGH: "#f97316",
+  CRITICAL: "#ef4444",
 };
 
 export default function AnalyticsView() {
@@ -38,80 +39,120 @@ export default function AnalyticsView() {
       .catch((err) => setError(String(err)));
   }, []);
 
-  if (error) return <div className="text-red-600">{error}</div>;
-  if (!metrics) return <div className="text-slate-500">Loading…</div>;
+  if (error)
+    return (
+      <div className="card p-4 text-red-700 bg-red-50 border-red-200">{error}</div>
+    );
+  if (!metrics)
+    return <div className="card p-10 text-center text-slate-400">Loading…</div>;
 
   const bandData = Object.entries(metrics.live_risk_distribution.band_counts).map(
     ([band, count]) => ({ band, count })
   );
   const modelData = metrics.model.val_comparison;
+  const holdoutFail = metrics.spatial_robustness.holdout_verdict === "FAIL";
 
   return (
-    <div className="flex flex-col gap-8">
-      <section>
-        <h3 className="text-sm font-semibold text-slate-700 mb-2">
-          Live risk distribution ({metrics.live_risk_distribution.total_cells}{" "}
-          zones)
-        </h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={bandData}
-                dataKey="count"
-                nameKey="band"
-                cx="50%"
-                cy="50%"
-                outerRadius={90}
-                label={(entry: { name?: string; value?: number }) =>
-                  `${entry.name}: ${entry.value}`
-                }
-              >
-                {bandData.map((entry) => (
-                  <Cell key={entry.band} fill={BAND_COLOR[entry.band]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+    <div className="flex flex-col gap-6">
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="card p-5">
+          <h3 className="text-sm font-semibold text-slate-700 mb-1">
+            Live risk distribution
+          </h3>
+          <p className="text-xs text-slate-400 mb-2">
+            {metrics.live_risk_distribution.total_cells} zones evaluated right now
+          </p>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={bandData}
+                  dataKey="count"
+                  nameKey="band"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  label={(entry: { name?: string; value?: number }) =>
+                    `${entry.name}: ${entry.value}`
+                  }
+                >
+                  {bandData.map((entry) => (
+                    <Cell key={entry.band} fill={BAND_COLOR[entry.band]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </section>
+
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-1">
+            Model comparison (validation PR-AUC)
+          </h3>
+          <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
+            <Trophy size={12} className="text-amber-500" />
+            Winner: <span className="font-medium text-slate-600">{metrics.model.winner}</span>
+          </p>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={modelData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="model" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 1]} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="pr_auc" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-700 mb-2">
-          Model comparison (validation PR-AUC) — winner: {metrics.model.winner}
-        </h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={modelData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="model" />
-              <YAxis domain={[0, 1]} />
-              <Tooltip />
-              <Bar dataKey="pr_auc" fill="#3b6ea5" />
-            </BarChart>
-          </ResponsiveContainer>
+        <h3 className="text-sm font-semibold text-slate-700 mb-3">Model health</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Operating threshold" value={metrics.operating_threshold} />
+          <StatCard
+            label="Operational horizon"
+            value={`${metrics.operational_horizon_minutes} min`}
+          />
+          <StatCard
+            label="Spatial holdout"
+            value={metrics.spatial_robustness.holdout_verdict}
+            warn={holdoutFail}
+          />
+          <StatCard
+            label="Spatial abstraction"
+            value={metrics.spatial_robustness.abstraction_verdict}
+            good={metrics.spatial_robustness.abstraction_verdict === "PASS"}
+          />
         </div>
+
+        {holdoutFail && (
+          <div className="mt-3 card border-amber-200 bg-amber-50 p-4 flex gap-3">
+            <Info size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-900">
+              <span className="font-semibold">What this means:</span> when
+              tested on H3 cells the model never saw during training, accuracy
+              drops by{" "}
+              {metrics.spatial_robustness.holdout_pr_auc_drop_pct.toFixed(1)}%
+              — more than this project&apos;s own 3% pass threshold. In plain
+              terms: predictions are reliable for zones inside the trained
+              geography (Bengaluru hotspots already in the dataset), but the
+              model would <em>not</em> generalize cleanly to a brand-new city
+              or an unseen district. The{" "}
+              <span className="font-semibold">spatial-abstraction PASS</span>{" "}
+              alongside it shows the model isn&apos;t purely memorizing
+              coordinates either — it has learned real, transferable signal
+              (time-of-day, vehicle mix, junction history) on top of location.
+              This is disclosed deliberately rather than hidden — see
+              docs/spatial_dependency.md.
+            </p>
+          </div>
+        )}
       </section>
 
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Operating threshold" value={metrics.operating_threshold} />
-        <StatCard
-          label="Operational horizon"
-          value={`${metrics.operational_horizon_minutes} min`}
-        />
-        <StatCard
-          label="Spatial holdout"
-          value={metrics.spatial_robustness.holdout_verdict}
-          warn={metrics.spatial_robustness.holdout_verdict === "FAIL"}
-        />
-        <StatCard
-          label="Spatial abstraction"
-          value={metrics.spatial_robustness.abstraction_verdict}
-        />
-      </section>
-
-      <section className="text-xs text-slate-500 border-t border-slate-200 pt-3">
+      <section className="text-xs text-slate-400 border-t border-slate-200 pt-4">
         Feature set: {metrics.feature_set} · Data sources: {metrics.data_sources}
       </section>
     </div>
@@ -122,19 +163,27 @@ function StatCard({
   label,
   value,
   warn,
+  good,
 }: {
   label: string;
   value: string | number;
   warn?: boolean;
+  good?: boolean;
 }) {
   return (
     <div
-      className={`border rounded-lg p-3 ${
-        warn ? "border-red-300 bg-red-50" : "border-slate-200 bg-white"
+      className={`card p-4 ${
+        warn ? "border-amber-300 bg-amber-50" : good ? "border-green-200 bg-green-50" : ""
       }`}
     >
-      <div className="text-xl font-bold">{value}</div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div
+        className={`text-xl font-bold ${
+          warn ? "text-amber-700" : good ? "text-green-700" : "text-slate-800"
+        }`}
+      >
+        {value}
+      </div>
+      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
     </div>
   );
 }

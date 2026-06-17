@@ -21,6 +21,11 @@ export interface ForecastResponse {
   last_known_event?: string;
   escalated?: boolean;
   note?: string;
+  // Phase 7 — proxy for carriageway-width consumed by concurrently parked
+  // vehicles in this zone (not measured traffic flow; the dataset has no
+  // speed/volume/queue data). See docs/risk_definition.md.
+  carriageway_impact_score: number;
+  carriageway_impact_label: "Minimal" | "Moderate" | "Significant" | "Severe";
 }
 
 export interface Alert {
@@ -37,12 +42,44 @@ export interface Alert {
   escalated: boolean;
   top_contributing_factors: ContributingFactor[];
   last_known_event: string;
+  carriageway_impact_score: number;
+  carriageway_impact_label: "Minimal" | "Moderate" | "Significant" | "Severe";
 }
 
 export interface AlertsResponse {
   count: number;
   total_cells_evaluated: number;
   alerts: Alert[];
+}
+
+// Phase 7 — /replay/{scenario}: a real historical event sequence (not
+// synthetic, not live) replayed point-by-point for the dashboard's replay
+// mode. See backend/app/serving/replay_service.py.
+export interface ReplayPoint {
+  timestamp: string;
+  latitude: number;
+  longitude: number;
+  junction_name: string;
+  vehicle_type: string;
+  violations_last_15m: number;
+  rolling_hotspot_intensity: number;
+  carriageway_impact_score: number;
+  carriageway_impact_label: "Minimal" | "Moderate" | "Significant" | "Severe";
+  hotspot_probability: number;
+  predicted_count: number;
+  risk_score: number;
+  risk_band: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  recommendation: string;
+  escalated: boolean;
+}
+
+export interface ReplayResponse {
+  scenario: string;
+  label: string;
+  cell: string;
+  is_real_data: boolean;
+  point_count: number;
+  points: ReplayPoint[];
 }
 
 export interface ModelMetric {

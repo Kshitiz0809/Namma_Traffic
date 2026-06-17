@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor
 
+from app.models.carriageway_impact import compute_carriageway_impact
 from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 from app.models.recommendation import load_rules, recommend
 from app.models.risk_score import RiskMinMaxParams, compute_risk_score
@@ -43,6 +44,11 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
     rules = load_rules()
 
     features = pd.read_parquet(PROCESSED_DIR / "features.parquet")
+    # Carriageway impact needs the full per-cell history (it's a rolling
+    # concurrency window), so compute it before reducing to "latest row per
+    # cell" -- the latest row's impact score reflects everything that was
+    # concurrently parked in that cell up to its own timestamp.
+    features = compute_carriageway_impact(features, rules)
     latest_idx = features.groupby("h3_cell")["created_datetime"].idxmax()
     latest = features.loc[latest_idx].reset_index(drop=True)
 
@@ -66,6 +72,8 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
     risk_df["vehicle_type"] = latest["vehicle_type"].to_numpy()
     risk_df["junction_historical_risk"] = latest["junction_historical_risk"].to_numpy()
     risk_df["last_known_event"] = latest["created_datetime"].astype(str).to_numpy()
+    risk_df["carriageway_impact_score"] = latest["carriageway_impact_score"].to_numpy()
+    risk_df["carriageway_impact_label"] = latest["carriageway_impact_label"].to_numpy()
 
     recommendations = [
         recommend(
