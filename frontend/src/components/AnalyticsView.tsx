@@ -11,6 +11,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -68,18 +69,24 @@ export default function AnalyticsView() {
                 data={bandData}
                 dataKey="count"
                 nameKey="band"
-                cx="50%"
+                cx="40%"
                 cy="50%"
                 outerRadius={90}
-                label={(entry: { name?: string; value?: number }) =>
-                  `${entry.name}: ${entry.value}`
-                }
               >
                 {bandData.map((entry) => (
                   <Cell key={entry.band} fill={BAND_COLOR[entry.band]} />
                 ))}
               </Pie>
               <Tooltip />
+              <Legend
+                layout="vertical"
+                verticalAlign="middle"
+                align="right"
+                formatter={(value: string) => {
+                  const entry = bandData.find((b) => b.band === value);
+                  return `${value}: ${entry?.count ?? 0}`;
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
