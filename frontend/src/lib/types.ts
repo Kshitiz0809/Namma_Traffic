@@ -112,6 +112,10 @@ export interface MetricsResponse {
   };
   feature_set: string;
   data_sources: string;
+  temporal_distribution: {
+    by_hour: { hour: number; count: number }[];
+    by_weekday: { weekday: number; label: string; count: number }[];
+  };
 }
 
 export interface HealthResponse {

@@ -17,6 +17,39 @@ router = APIRouter()
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DOCS_DIR = PROJECT_ROOT / "docs"
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+
+WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+_temporal_distribution: dict | None = None
+
+
+def _get_temporal_distribution() -> dict:
+    """Historical violation counts by hour-of-day and day-of-week, from the
+    full features.parquet event log (each row is one violation occurrence).
+    Purely descriptive ("when do violations happen") — not a model input,
+    so this carries none of the leakage concerns that apply to features/targets.
+    Computed once, cached for the process lifetime.
+    """
+    global _temporal_distribution
+    if _temporal_distribution is not None:
+        return _temporal_distribution
+
+    features = pd.read_parquet(PROCESSED_DIR / "features.parquet", columns=["hour", "weekday"])
+
+    by_hour = features["hour"].value_counts().sort_index()
+    by_weekday = features["weekday"].value_counts().sort_index()
+
+    _temporal_distribution = {
+        "by_hour": [
+            {"hour": int(h), "count": int(c)} for h, c in by_hour.items()
+        ],
+        "by_weekday": [
+            {"weekday": int(w), "label": WEEKDAY_LABELS[int(w)], "count": int(c)}
+            for w, c in by_weekday.items()
+        ],
+    }
+    return _temporal_distribution
 
 
 @router.get("/metrics")
@@ -62,4 +95,5 @@ def metrics():
         },
         "feature_set": "FROZEN (Phase 4 lock, ADR-019)",
         "data_sources": "internal-only (ADR-001) — no external enrichment",
+        "temporal_distribution": _get_temporal_distribution(),
     }

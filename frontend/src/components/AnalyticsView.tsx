@@ -4,7 +4,7 @@
 // /metrics (all real numbers from docs/leaderboard.csv, never recomputed
 // by this page) plus a live risk-band breakdown.
 
-import { Info, Trophy } from "lucide-react";
+import { Clock, Info, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -107,6 +107,50 @@ export default function AnalyticsView() {
           </div>
         </div>
       </div>
+
+      <section className="grid lg:grid-cols-2 gap-6">
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-1">
+            <Clock size={14} className="text-slate-400" />
+            Violations by hour of day
+          </h3>
+          <p className="text-xs text-slate-400 mb-2">
+            When violations historically occur (all logged events)
+          </p>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={metrics.temporal_distribution.by_hour}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="hour" tick={{ fontSize: 11 }} interval={1} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip labelFormatter={(h) => `${h}:00`} />
+                <Bar dataKey="count" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-1">
+            <Clock size={14} className="text-slate-400" />
+            Violations by day of week
+          </h3>
+          <p className="text-xs text-slate-400 mb-2">
+            Which days historically see the most activity
+          </p>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={metrics.temporal_distribution.by_weekday}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </section>
 
       <section>
         <h3 className="text-sm font-semibold text-slate-700 mb-3">Model health</h3>
