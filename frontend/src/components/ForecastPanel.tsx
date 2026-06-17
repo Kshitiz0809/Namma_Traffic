@@ -38,8 +38,10 @@ const IMPACT_BAR_COLOR: Record<string, string> = {
 
 export default function ForecastPanel({
   initialCell,
+  initialLocation,
 }: {
   initialCell?: string | null;
+  initialLocation?: { lat: number; lon: number } | null;
 } = {}) {
   const [h3Cell, setH3Cell] = useState(initialCell || EXAMPLE_CELLS[0].h3_cell);
   const [vehicleType, setVehicleType] = useState("");
@@ -47,6 +49,7 @@ export default function ForecastPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastAppliedCell = useRef<string | null>(null);
+  const lastAppliedLocation = useRef<string | null>(null);
 
   // Jumped here from a map marker ("Forecast this zone") — populate the
   // cell field and run the forecast immediately instead of making the user
@@ -55,20 +58,34 @@ export default function ForecastPanel({
     if (initialCell && initialCell !== lastAppliedCell.current) {
       lastAppliedCell.current = initialCell;
       setH3Cell(initialCell);
-      runForecast(initialCell);
+      runForecast({ h3_cell: initialCell });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCell]);
 
-  async function runForecast(cell: string) {
+  // Jumped here from a map click ("Forecast this location") — no H3 cell ID
+  // needed, the backend resolves lat/lon to its H3 cell directly.
+  useEffect(() => {
+    if (initialLocation) {
+      const key = `${initialLocation.lat},${initialLocation.lon}`;
+      if (key !== lastAppliedLocation.current) {
+        lastAppliedLocation.current = key;
+        runForecast({ lat: initialLocation.lat, lon: initialLocation.lon });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLocation]);
+
+  async function runForecast(target: { h3_cell?: string; lat?: number; lon?: number }) {
     setLoading(true);
     setError(null);
     try {
       const res = await getForecast({
-        h3_cell: cell,
+        ...target,
         vehicle_type: vehicleType || undefined,
       });
       setResult(res);
+      setH3Cell(res.zone); // reflect the resolved H3 cell, even when queried by lat/lon
     } catch (err) {
       setError(String(err));
     } finally {
@@ -123,7 +140,7 @@ export default function ForecastPanel({
         </div>
 
         <button
-          onClick={() => runForecast(h3Cell)}
+          onClick={() => runForecast({ h3_cell: h3Cell })}
           disabled={loading}
           className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2.5 text-sm font-medium disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
         >

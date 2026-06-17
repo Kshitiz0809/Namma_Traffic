@@ -36,9 +36,19 @@ type TabId = (typeof TABS)[number]["id"];
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("map");
   const [forecastCell, setForecastCell] = useState<string | null>(null);
+  const [forecastLocation, setForecastLocation] = useState<{ lat: number; lon: number } | null>(
+    null
+  );
 
   function handleForecastZone(cell: string) {
     setForecastCell(cell);
+    setForecastLocation(null);
+    setActiveTab("forecast");
+  }
+
+  function handleForecastLocation(lat: number, lon: number) {
+    setForecastLocation({ lat, lon });
+    setForecastCell(null);
     setActiveTab("forecast");
   }
 
@@ -95,8 +105,15 @@ export default function Home() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {activeTab === "map" && <LiveRiskMap onForecastZone={handleForecastZone} />}
-        {activeTab === "forecast" && <ForecastPanel initialCell={forecastCell} />}
+        {activeTab === "map" && (
+          <LiveRiskMap
+            onForecastZone={handleForecastZone}
+            onForecastLocation={handleForecastLocation}
+          />
+        )}
+        {activeTab === "forecast" && (
+          <ForecastPanel initialCell={forecastCell} initialLocation={forecastLocation} />
+        )}
         {activeTab === "operations" && <OperationsView />}
         {activeTab === "analytics" && <AnalyticsView />}
       </div>

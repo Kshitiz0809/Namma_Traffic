@@ -18,7 +18,14 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
+import {
+  CircleMarker,
+  MapContainer,
+  Popup,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { getAlerts, getReplay } from "@/lib/api";
@@ -49,11 +56,25 @@ function RecenterMap({ center, zoom }: { center: [number, number]; zoom?: number
   return null;
 }
 
-function LiveMode({ onForecastZone }: { onForecastZone?: (cell: string) => void }) {
+function ClickCapture({ onClick }: { onClick: (lat: number, lon: number) => void }) {
+  useMapEvents({
+    click: (e) => onClick(e.latlng.lat, e.latlng.lng),
+  });
+  return null;
+}
+
+function LiveMode({
+  onForecastZone,
+  onForecastLocation,
+}: {
+  onForecastZone?: (cell: string) => void;
+  onForecastLocation?: (lat: number, lon: number) => void;
+}) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minBand, setMinBand] = useState("MEDIUM");
+  const [clickedPoint, setClickedPoint] = useState<{ lat: number; lon: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,12 +122,50 @@ function LiveMode({ onForecastZone }: { onForecastZone?: (cell: string) => void 
         )}
       </div>
 
+      {onForecastLocation && (
+        <p className="text-xs text-slate-400 px-1">
+          Click anywhere on the map to forecast that exact location, even
+          outside the markers shown above.
+        </p>
+      )}
+
       <div className="h-[520px] w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm">
         <MapContainer center={BENGALURU_CENTER} zoom={12} style={{ height: "100%", width: "100%" }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {onForecastLocation && (
+            <ClickCapture onClick={(lat, lon) => setClickedPoint({ lat, lon })} />
+          )}
+          {clickedPoint && (
+            <CircleMarker
+              center={[clickedPoint.lat, clickedPoint.lon]}
+              radius={9}
+              pathOptions={{ color: "#4f46e5", fillColor: "#4f46e5", fillOpacity: 0.5 }}
+            >
+              <Popup>
+                <div className="text-sm space-y-1.5">
+                  <div className="font-semibold">Clicked location</div>
+                  <div className="font-mono text-xs">
+                    {clickedPoint.lat.toFixed(5)}, {clickedPoint.lon.toFixed(5)}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    No H3 cell ID needed — the backend resolves this point to
+                    its H3 cell and forecasts it directly.
+                  </p>
+                  {onForecastLocation && (
+                    <button
+                      onClick={() => onForecastLocation(clickedPoint.lat, clickedPoint.lon)}
+                      className="mt-1 text-xs px-2 py-1 rounded bg-indigo-600 text-white"
+                    >
+                      Forecast this location →
+                    </button>
+                  )}
+                </div>
+              </Popup>
+            </CircleMarker>
+          )}
           {alerts.map((a) => (
             <CircleMarker
               key={a.zone}
@@ -338,8 +397,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export default function LiveRiskMap({
   onForecastZone,
+  onForecastLocation,
 }: {
   onForecastZone?: (cell: string) => void;
+  onForecastLocation?: (lat: number, lon: number) => void;
 } = {}) {
   const [mode, setMode] = useState<"live" | "replay">("live");
 
@@ -370,7 +431,7 @@ export default function LiveRiskMap({
         </button>
       </div>
       {mode === "live" ? (
-        <LiveMode onForecastZone={onForecastZone} />
+        <LiveMode onForecastZone={onForecastZone} onForecastLocation={onForecastLocation} />
       ) : (
         <ReplayMode />
       )}
