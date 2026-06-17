@@ -431,12 +431,17 @@ python -m app.models.demo_seed alerts        # alert replay
 
 Full instructions: [`docs/deployment.md`](docs/deployment.md)
 
-- **Backend → Render**: `render.yaml` is present and configured.
-- **Frontend → Vercel**: `frontend/vercel.json` is present and configured.
-- **Docker**: `backend/Dockerfile` builds from repo root context.
+- **Backend → Hugging Face Space (Docker)**: https://kshitizsharma-parkingintelligenceapi.hf.space
+  — `deploy/huggingface-space/` pulls the prebuilt `kshitizs98/parking-intelligence-api`
+  Docker Hub image (`backend/Dockerfile` builds it from repo root context).
+  Render was tried first but its free tier's 512MB RAM OOM-killed `/metrics`
+  and `/alerts`; HF's free CPU tier (16GB RAM) fixed it.
+- **Frontend → Vercel**: https://namma-traffic-orpin.vercel.app
 
-No live deployment was executed (explicit hackathon scope decision). All
-config files are verified-present and correct.
+**Note for judges:** the backend is on Hugging Face's free CPU tier, which
+sleeps after a period of inactivity. The first request after a sleep can take
+30-60s to wake up — if the dashboard looks stuck on "Loading…" on first load,
+give it a minute and refresh.
 
 ---
 

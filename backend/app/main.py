@@ -8,14 +8,15 @@ CORS enabled for the Next.js dashboard, full API surface documented in
 docs/api_contract.md. OpenAPI docs are FastAPI's built-in /docs and /redoc
 — no separate generation step needed, just documented as available.
 
-CORS note: allow_origins=["*"] is intentionally permissive for this
-hackathon demo (the dashboard's exact deployed origin isn't known in
-advance, and there are no user accounts/auth to protect). Tighten to the
-real frontend origin before any production use beyond a demo.
+CORS note: scoped to the deployed Vercel frontend + local dev origins now
+that the real frontend URL is known (previously allow_origins=["*"] while
+the deployed origin was still TBD).
 """
 
 import logging
+from pathlib import Path
 
+import pyarrow.parquet as pq
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -26,6 +27,9 @@ from app.serving.forecast_service import router as forecast_router
 from app.serving.metrics_service import router as metrics_router
 from app.serving.replay_service import router as replay_router
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROCESSED_FEATURES_PATH = PROJECT_ROOT / "data" / "processed" / "features.parquet"
+
 logging.basicConfig(level=settings.log_level, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -35,9 +39,14 @@ app = FastAPI(
     description="Predicts where/when parking violations and congestion occur, and recommends enforcement action.",
 )
 
+ALLOWED_ORIGINS = [
+    "https://namma-traffic-orpin.vercel.app",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET"],
     allow_headers=["*"],
 )
@@ -65,6 +74,10 @@ def health():
     Note: this re-reads the full CSV on every call, which is fine for a Phase 1
     smoke test but too slow for production use. From Phase 2 onward, the API
     reads pre-processed parquet/Postgres data instead of the raw CSV directly.
+
+    Deployed images (see backend/Dockerfile) don't ship the raw CSV — only
+    data/processed/. In that case, fall back to a cheap parquet metadata read
+    instead of returning a misleading "error" status for an expected gap.
     """
     try:
         df, validation = load_and_validate()
@@ -74,5 +87,14 @@ def health():
             "schema_valid": validation.is_valid,
             "missing_columns": validation.missing_columns,
         }
-    except FileNotFoundError as e:
-        return {"status": "error", "detail": str(e)}
+    except FileNotFoundError:
+        if PROCESSED_FEATURES_PATH.exists():
+            row_count = pq.ParquetFile(PROCESSED_FEATURES_PATH).metadata.num_rows
+            return {
+                "status": "ok",
+                "rows_loaded": row_count,
+                "schema_valid": True,
+                "missing_columns": [],
+                "note": "raw CSV not shipped in this deployment; reporting from data/processed/features.parquet",
+            }
+        return {"status": "error", "detail": "Neither the raw CSV nor data/processed/features.parquet were found."}
