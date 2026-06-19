@@ -6,6 +6,7 @@ plus a live risk-band distribution snapshot for the dashboard's Analytics View.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -22,6 +23,31 @@ PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 _temporal_distribution: dict | None = None
+
+
+def reload_state() -> None:
+    """Clear the cached temporal distribution so it's recomputed from the
+    latest features.parquet — called after an admin-triggered retrain.
+    """
+    global _temporal_distribution
+    _temporal_distribution = None
+
+
+def _get_spatial_robustness() -> dict:
+    """Reads the spatial holdout verdict from docs/spatial_holdout_result.json
+    — written fresh by every `train.run()` (see app/models/train.py) — instead
+    of a value hardcoded in source, so this reflects whatever the CURRENT
+    feature set actually measures, not a number frozen at Phase 3.5 time.
+    """
+    holdout_path = DOCS_DIR / "spatial_holdout_result.json"
+    if not holdout_path.exists():
+        return {"holdout_verdict": "UNKNOWN", "holdout_pr_auc_drop_pct": None}
+    with open(holdout_path, encoding="utf-8") as f:
+        result = json.load(f)
+    return {
+        "holdout_verdict": result["verdict"],
+        "holdout_pr_auc_drop_pct": result["pr_auc_drop_pct"],
+    }
 
 
 def _get_temporal_distribution() -> dict:
@@ -80,8 +106,7 @@ def metrics():
         "operating_threshold": 0.15,
         "operational_horizon_minutes": 60,
         "spatial_robustness": {
-            "holdout_verdict": "FAIL",
-            "holdout_pr_auc_drop_pct": 7.88,
+            **_get_spatial_robustness(),
             "abstraction_verdict": "PASS",
             "abstraction_pr_auc_drop_pct": float(
                 spatial_dependency[spatial_dependency["objective"].str.contains("model_a")]["pr_auc"].iloc[0]
@@ -93,7 +118,8 @@ def metrics():
             "band_counts": band_counts,
             "band_pct": {k: round(v / total * 100, 1) for k, v in band_counts.items()},
         },
-        "feature_set": "FROZEN (Phase 4 lock, ADR-019)",
+        "feature_set": "Retrainable (ADR-021/022) — h3_cell/geohash identity dropped as model inputs, "
+                        "neighbor-averaged density/intensity features added, risk weights data-fit per retrain",
         "data_sources": "internal-only (ADR-001) — no external enrichment",
         "temporal_distribution": _get_temporal_distribution(),
     }

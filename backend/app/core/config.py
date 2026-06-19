@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     # --- Maps ---
     mapbox_access_token: str = ""
 
+    # --- Admin API (retraining endpoints) ---
+    # Empty/unset disables /admin/* entirely (see app/serving/admin_service.py)
+    # — these routes can overwrite production models, so they must not be
+    # reachable without an explicit token configured.
+    admin_api_token: str = ""
+
     @property
     def raw_data_full_path(self) -> Path:
         """Resolve raw_data_path relative to the project root, not the CWD."""

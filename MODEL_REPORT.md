@@ -154,8 +154,8 @@ buys negligible robustness for a real (if small) accuracy cost.
 | Operating threshold | **0.15** (was 0.30) |
 | Calibration | None (baseline probabilities) |
 | Operational horizon | **60 minutes** |
-| Spatial robustness (new-geography generalization) | **FAIL** — model won't generalize to new geographic coverage without retraining. Does NOT block deployment within existing coverage (explicit instruction). |
-| Spatial abstraction (h3_cell marginal value) | **PASS** — `h3_cell` kept, feature set frozen |
+| Spatial robustness (new-geography generalization) | **FAIL, improved in Phase 8** — 7.88%→6.32% PR-AUC drop after ADR-022 (see Phase 8 section below). Still does not fully clear the 5% bar. |
+| Spatial abstraction (h3_cell marginal value) | **Superseded in Phase 8** — `h3_cell` is now dropped as a model input (ADR-022), reversing this Phase 3.5 decision once retraining-on-new-data became a requirement; see below. |
 
 ## Phase 5 — Parking-Induced Congestion Risk Engine ✅
 
@@ -260,3 +260,32 @@ This session hit a hard disk-space constraint (~206MB free) that blocked
 live screenshot capture and caused two transient memory-allocation errors
 (both resolved cleanly on retry — not a code defect). Documented in full
 in `docs/final_checklist.md` and ADR-021.
+
+## Phase 8 — Retraining, spatial generalization fix, data-fit risk weights ✅
+
+Post-submission revisit of three weaknesses identified in review: the
+model couldn't be retrained on new police-uploaded data, the spatial
+holdout test still failed, and risk weights were hand-picked. Full
+reasoning: DECISIONS.md ADR-022/023/024.
+
+**This phase explicitly UNFREEZES the Phase 4 feature lock and the Phase 4
+decision to keep `h3_cell`** — both were frozen under the assumption of a
+single training run with no further retraining. That assumption no longer
+holds once a retraining pipeline exists.
+
+| Task | Result | Decision |
+|---|---|---|
+| 1. Drop `h3_cell`/`geohash` as model inputs + add neighbor-averaged features (ring-1 H3 neighbors, 6 new columns) | Spatial holdout PR-AUC drop: 7.88% (original) / 7.09% (re-measured) → **6.32%** | **Adopted as production default** — real improvement, does not fully clear the 5% bar |
+| 2. Widen neighbor ring to k=2/k=3 | No further improvement (6.0-6.9% range) | Not adopted — diminishing returns confirmed empirically |
+| 3. Drop `junction_name`/`police_station` too | 6.05% vs 6.07% — negligible | Not adopted — these weren't the bottleneck |
+| 4. Risk weights: ridge-regularized NNLS vs `target_count_60m` | Plain NNLS collapsed to 100% on one component (regressor's own training target); ridge with auto-selected minimum regularization spreads weight: `{hotspot_probability: 0.023, normalized_predicted_count: 0.701, persistence: 0.145, recent_intensity: 0.131}` | **Adopted**, refit on every retrain |
+| 5. Retraining pipeline (`/admin/ingest`, `/admin/retrain`) | Full pipeline (features→train→risk params→spatial holdout→alerts) runs end-to-end, archives prior artifacts, hot-reloads serving layer | **Adopted** |
+
+**Honest framing for judges:** the spatial holdout verdict is still FAIL,
+not PASS — report this as "reduced the generalization gap by ~20%
+relative," not "fixed spatial generalization." The risk weights are a
+data-driven proxy fit (against `target_count_60m`, the closest available
+outcome signal), not a measured causal weight — there is still no
+ground-truth congestion data in the provided dataset (ADR-001 holds).
+
+**Tests:** 72/72 passing (58 original + 14 new for `raw_store`/`admin_service`).

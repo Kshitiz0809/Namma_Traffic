@@ -1,801 +1,1181 @@
 [
   {
-    "zone": "8960145b427ffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-02-29 19:30:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9161,
-    "risk_score": 45.09,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.65
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 4.99
-      }
-    ]
-  },
-  {
     "zone": "8960145b553ffff",
     "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-03-03 00:05:46+00:00",
+    "timestamp": "2024-02-24 05:05:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9276,
-    "risk_score": 45.09,
+    "probability": 0.9295,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.1
+        "factor": "normalized_predicted_count",
+        "contribution": 7.86
       },
       {
         "factor": "persistence",
-        "contribution": 4.78
+        "contribution": 3.83
       }
     ]
   },
   {
-    "zone": "8960145b427ffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-03-06 19:42:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9069,
-    "risk_score": 45.09,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 5.07
-      }
-    ]
-  },
-  {
-    "zone": "89618920927ffff",
+    "zone": "8960145b2a7ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-03-07 00:50:46+00:00",
+    "timestamp": "2024-02-26 00:59:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9219,
-    "risk_score": 45.09,
+    "probability": 0.8198,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.88
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 4.02
-      }
-    ]
-  },
-  {
-    "zone": "8960145b59bffff",
-    "junction_name": "BTP083 - AS Char Street, Mysore Road",
-    "timestamp": "2024-03-09 19:31:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.911,
-    "risk_score": 45.09,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.44
+        "contribution": 7.91
       },
       {
         "factor": "persistence",
-        "contribution": 5.61
+        "contribution": 3.24
       }
     ]
   },
   {
-    "zone": "8960145b427ffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-03-09 20:46:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.928,
-    "risk_score": 45.09,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.12
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 4.38
-      }
-    ]
-  },
-  {
-    "zone": "8960145b59bffff",
-    "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-03-13 03:02:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.922,
-    "risk_score": 45.09,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.88
-      },
-      {
-        "factor": "persistence",
-        "contribution": 5.22
-      }
-    ]
-  },
-  {
-    "zone": "8960145b5cbffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-02-21 05:48:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9158,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.63
-      },
-      {
-        "factor": "persistence",
-        "contribution": 4.9
-      }
-    ]
-  },
-  {
-    "zone": "8961892e9abffff",
+    "zone": "8961892e9bbffff",
     "junction_name": "BTP051 - Safina Plaza Junction",
-    "timestamp": "2024-02-26 03:13:46+00:00",
+    "timestamp": "2024-03-04 04:37:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9198,
-    "risk_score": 45.08,
+    "probability": 0.9245,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.79
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 6.11
-      }
-    ]
-  },
-  {
-    "zone": "8960145b553ffff",
-    "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-02-27 03:52:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9084,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 36.34
+        "contribution": 9.82
       },
       {
-        "factor": "normalized_predicted_count",
-        "contribution": 5.15
-      }
-    ]
-  },
-  {
-    "zone": "8960145b427ffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-02-29 04:13:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9191,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
         "factor": "hotspot_probability",
-        "contribution": 36.77
-      },
-      {
-        "factor": "persistence",
-        "contribution": 4.16
-      }
-    ]
-  },
-  {
-    "zone": "8960145b547ffff",
-    "junction_name": "BTP048 - Shanthala Junction",
-    "timestamp": "2024-03-02 04:52:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.876,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 35.04
-      },
-      {
-        "factor": "persistence",
-        "contribution": 5.0
-      }
-    ]
-  },
-  {
-    "zone": "8960145b5cbffff",
-    "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-03-02 23:40:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9378,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.51
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 3.88
-      }
-    ]
-  },
-  {
-    "zone": "8961892e2bbffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-09 18:54:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9556,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.22
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 3.35
+        "contribution": 2.17
       }
     ]
   },
   {
     "zone": "8960145a24fffff",
     "junction_name": "BTP070 - Cholurpalya Junction, Magadi Road",
-    "timestamp": "2024-03-10 05:10:46+00:00",
+    "timestamp": "2024-03-04 05:16:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9331,
-    "risk_score": 45.08,
+    "probability": 0.8394,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.32
+        "factor": "normalized_predicted_count",
+        "contribution": 11.46
       },
       {
-        "factor": "normalized_predicted_count",
-        "contribution": 4.65
+        "factor": "hotspot_probability",
+        "contribution": 1.97
       }
     ]
   },
   {
-    "zone": "8960145b59bffff",
-    "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-03-10 20:02:46+00:00",
+    "zone": "8961892e2bbffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-06 03:49:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.8609,
-    "risk_score": 45.08,
+    "probability": 0.7762,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 34.44
+        "factor": "normalized_predicted_count",
+        "contribution": 9.91
       },
       {
         "factor": "persistence",
-        "contribution": 7.52
+        "contribution": 2.37
       }
     ]
   },
   {
     "zone": "8960145b5cbffff",
     "junction_name": "BTP044 - Sagar Theatre Junction",
-    "timestamp": "2024-03-11 06:38:46+00:00",
+    "timestamp": "2024-03-08 01:54:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9304,
-    "risk_score": 45.08,
+    "probability": 0.9138,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.21
+        "factor": "normalized_predicted_count",
+        "contribution": 8.69
       },
       {
         "factor": "persistence",
-        "contribution": 4.88
-      }
-    ]
-  },
-  {
-    "zone": "896016964b7ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-14 05:57:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9475,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.9
-      },
-      {
-        "factor": "persistence",
-        "contribution": 3.04
-      }
-    ]
-  },
-  {
-    "zone": "896016964b7ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-14 05:58:46+00:00",
-    "alert_level": "YELLOW",
-    "probability": 0.9471,
-    "risk_score": 45.08,
-    "risk_band": "MEDIUM",
-    "recommendation": "Patrol",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.88
-      },
-      {
-        "factor": "persistence",
-        "contribution": 3.15
+        "contribution": 2.93
       }
     ]
   },
   {
     "zone": "8960145b59bffff",
     "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-02-24 20:21:46+00:00",
+    "timestamp": "2024-03-09 01:11:46+00:00",
     "alert_level": "YELLOW",
-    "probability": 0.9339,
-    "risk_score": 45.07,
+    "probability": 0.9346,
+    "risk_score": 14.22,
     "risk_band": "MEDIUM",
     "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.35
+        "factor": "normalized_predicted_count",
+        "contribution": 6.8
       },
       {
         "factor": "persistence",
-        "contribution": 4.09
+        "contribution": 4.77
       }
     ]
   },
   {
     "zone": "8960145b553ffff",
     "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-03-03 05:03:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9621,
-    "risk_score": 54.19,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
+    "timestamp": "2024-03-09 22:08:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9454,
+    "risk_score": 14.22,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 38.48
+        "factor": "normalized_predicted_count",
+        "contribution": 7.45
       },
       {
         "factor": "persistence",
-        "contribution": 11.92
+        "contribution": 4.2
+      }
+    ]
+  },
+  {
+    "zone": "8960145b553ffff",
+    "junction_name": "BTP044 - Sagar Theatre Junction",
+    "timestamp": "2024-03-10 01:00:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9116,
+    "risk_score": 14.22,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 7.22
+      },
+      {
+        "factor": "persistence",
+        "contribution": 4.86
       }
     ]
   },
   {
     "zone": "8960145b553ffff",
     "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-03-11 02:19:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9683,
-    "risk_score": 54.19,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
+    "timestamp": "2024-02-21 02:35:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9143,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
     "top_contributing_factors": [
       {
+        "factor": "normalized_predicted_count",
+        "contribution": 8.57
+      },
+      {
+        "factor": "persistence",
+        "contribution": 2.92
+      }
+    ]
+  },
+  {
+    "zone": "8961892e917ffff",
+    "junction_name": "BTP051 - Safina Plaza Junction",
+    "timestamp": "2024-02-21 05:10:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9452,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 8.93
+      },
+      {
         "factor": "hotspot_probability",
-        "contribution": 38.73
+        "contribution": 2.22
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-22 04:59:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9516,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "persistence",
+        "contribution": 8.48
       },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 7.5
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-11 22:50:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9675,
-    "risk_score": 54.19,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.7
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.54
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-22 04:14:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.968,
-    "risk_score": 54.17,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.72
-      },
-      {
-        "factor": "persistence",
-        "contribution": 10.19
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 03:36:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9388,
-    "risk_score": 54.17,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.55
-      },
-      {
-        "factor": "persistence",
-        "contribution": 10.07
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 03:55:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9335,
-    "risk_score": 54.17,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.34
-      },
-      {
-        "factor": "persistence",
-        "contribution": 10.68
+        "contribution": 2.81
       }
     ]
   },
   {
     "zone": "8960145b553ffff",
     "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-03-03 06:22:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9453,
-    "risk_score": 54.16,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
+    "timestamp": "2024-02-23 02:17:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9261,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.81
+        "factor": "normalized_predicted_count",
+        "contribution": 8.95
       },
       {
         "factor": "persistence",
-        "contribution": 13.06
+        "contribution": 2.62
+      }
+    ]
+  },
+  {
+    "zone": "896189244d7ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-23 07:22:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.8209,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 9.95
+      },
+      {
+        "factor": "persistence",
+        "contribution": 2.33
+      }
+    ]
+  },
+  {
+    "zone": "8961892e9abffff",
+    "junction_name": "BTP051 - Safina Plaza Junction",
+    "timestamp": "2024-02-28 02:18:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.8939,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 10.08
+      },
+      {
+        "factor": "hotspot_probability",
+        "contribution": 2.1
+      }
+    ]
+  },
+  {
+    "zone": "89601690193ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-29 02:49:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.869,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 8.19
+      },
+      {
+        "factor": "persistence",
+        "contribution": 2.15
+      }
+    ]
+  },
+  {
+    "zone": "8960145b4cbffff",
+    "junction_name": "BTP042 - Minsk Square Junction (CTO)",
+    "timestamp": "2024-03-02 00:07:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9136,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 6.99
+      },
+      {
+        "factor": "persistence",
+        "contribution": 3.01
       }
     ]
   },
   {
     "zone": "8960145b59bffff",
     "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-03-05 20:41:46+00:00",
+    "timestamp": "2024-03-02 23:56:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.9052,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 5.89
+      },
+      {
+        "factor": "persistence",
+        "contribution": 5.62
+      }
+    ]
+  },
+  {
+    "zone": "8960145b59bffff",
+    "junction_name": "BTP082 - KR Market Junction",
+    "timestamp": "2024-03-03 04:05:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.8838,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 6.75
+      },
+      {
+        "factor": "persistence",
+        "contribution": 5.38
+      }
+    ]
+  },
+  {
+    "zone": "8961892e2bbffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-04 19:03:46+00:00",
+    "alert_level": "YELLOW",
+    "probability": 0.954,
+    "risk_score": 14.21,
+    "risk_band": "MEDIUM",
+    "recommendation": "Patrol",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 9.71
+      },
+      {
+        "factor": "hotspot_probability",
+        "contribution": 2.24
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-23 02:47:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.911,
+    "risk_score": 24.92,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 12.26
+      },
+      {
+        "factor": "persistence",
+        "contribution": 10.52
+      }
+    ]
+  },
+  {
+    "zone": "8960145b59bffff",
+    "junction_name": "BTP082 - KR Market Junction",
+    "timestamp": "2024-02-26 19:30:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9844,
+    "risk_score": 24.92,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 11.41
+      },
+      {
+        "factor": "persistence",
+        "contribution": 6.73
+      }
+    ]
+  },
+  {
+    "zone": "8960145a26bffff",
+    "junction_name": "BTP020 - Hosahalli Metro Station",
+    "timestamp": "2024-03-12 03:27:46+00:00",
     "alert_level": "ORANGE",
     "probability": 0.9569,
-    "risk_score": 54.16,
+    "risk_score": 24.92,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 38.28
+        "factor": "normalized_predicted_count",
+        "contribution": 18.45
       },
       {
-        "factor": "persistence",
-        "contribution": 8.34
+        "factor": "hotspot_probability",
+        "contribution": 2.25
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-02-23 01:47:46+00:00",
+    "timestamp": "2024-02-23 04:41:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.9548,
-    "risk_score": 54.15,
+    "probability": 0.9098,
+    "risk_score": 24.91,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.19
-      },
       {
         "factor": "persistence",
-        "contribution": 12.9
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-01 22:56:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9589,
-    "risk_score": 54.15,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.36
+        "contribution": 12.05
       },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 10.85
-      }
-    ]
-  },
-  {
-    "zone": "8960145b553ffff",
-    "junction_name": "BTP040 - Elite Junction",
-    "timestamp": "2024-03-03 03:53:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9885,
-    "risk_score": 54.15,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.54
-      },
-      {
-        "factor": "persistence",
-        "contribution": 7.58
+        "contribution": 10.38
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-03-06 04:35:46+00:00",
+    "timestamp": "2024-02-23 03:16:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.9419,
-    "risk_score": 54.15,
+    "probability": 0.953,
+    "risk_score": 24.9,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
       {
+        "factor": "normalized_predicted_count",
+        "contribution": 10.94
+      },
+      {
+        "factor": "persistence",
+        "contribution": 10.92
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-26 23:30:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9045,
+    "risk_score": 24.9,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 21.02
+      },
+      {
         "factor": "hotspot_probability",
-        "contribution": 37.68
+        "contribution": 2.13
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-06 04:30:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9677,
+    "risk_score": 24.9,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 17.7
+      },
+      {
+        "factor": "persistence",
+        "contribution": 2.86
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-11 23:11:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9381,
+    "risk_score": 24.9,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 16.77
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.09
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-12 02:49:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.7915,
+    "risk_score": 24.9,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 17.65
+      },
+      {
+        "factor": "persistence",
+        "contribution": 5.39
+      }
+    ]
+  },
+  {
+    "zone": "8960145a26bffff",
+    "junction_name": "BTP020 - Hosahalli Metro Station",
+    "timestamp": "2024-03-12 23:03:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9425,
+    "risk_score": 24.89,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 16.86
+      },
+      {
+        "factor": "persistence",
+        "contribution": 3.64
+      }
+    ]
+  },
+  {
+    "zone": "8960145a26bffff",
+    "junction_name": "BTP020 - Hosahalli Metro Station",
+    "timestamp": "2024-03-12 23:22:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9575,
+    "risk_score": 24.89,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 15.16
+      },
+      {
+        "factor": "persistence",
+        "contribution": 5.2
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-20 03:06:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.964,
+    "risk_score": 24.88,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 19.11
+      },
+      {
+        "factor": "hotspot_probability",
+        "contribution": 2.27
+      }
+    ]
+  },
+  {
+    "zone": "8960145a26bffff",
+    "junction_name": "BTP020 - Hosahalli Metro Station",
+    "timestamp": "2024-03-12 03:27:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9569,
+    "risk_score": 24.88,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 18.45
+      },
+      {
+        "factor": "hotspot_probability",
+        "contribution": 2.25
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-20 03:09:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9686,
+    "risk_score": 24.87,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 18.9
+      },
+      {
+        "factor": "hotspot_probability",
+        "contribution": 2.28
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-23 03:19:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9491,
+    "risk_score": 24.87,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "persistence",
+        "contribution": 10.98
       },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 10.6
+        "contribution": 10.86
+      }
+    ]
+  },
+  {
+    "zone": "8960145b59bffff",
+    "junction_name": "BTP082 - KR Market Junction",
+    "timestamp": "2024-02-25 21:00:46+00:00",
+    "alert_level": "ORANGE",
+    "probability": 0.9524,
+    "risk_score": 24.87,
+    "risk_band": "HIGH",
+    "recommendation": "Deploy enforcement",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 13.93
+      },
+      {
+        "factor": "persistence",
+        "contribution": 6.76
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-03-12 03:36:46+00:00",
+    "timestamp": "2024-02-20 03:06:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.9439,
-    "risk_score": 54.15,
+    "probability": 0.964,
+    "risk_score": 24.86,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 37.75
+        "factor": "normalized_predicted_count",
+        "contribution": 19.12
       },
       {
-        "factor": "persistence",
-        "contribution": 9.85
+        "factor": "hotspot_probability",
+        "contribution": 2.27
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-02-22 04:20:46+00:00",
+    "timestamp": "2024-02-23 03:17:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.966,
-    "risk_score": 54.14,
+    "probability": 0.9535,
+    "risk_score": 24.86,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 38.64
+        "factor": "persistence",
+        "contribution": 10.95
       },
       {
-        "factor": "persistence",
+        "factor": "normalized_predicted_count",
         "contribution": 10.75
       }
     ]
   },
   {
-    "zone": "8960145b59bffff",
-    "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-02-26 19:20:46+00:00",
+    "zone": "8960145a26bffff",
+    "junction_name": "BTP020 - Hosahalli Metro Station",
+    "timestamp": "2024-03-12 23:11:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.9718,
-    "risk_score": 54.14,
+    "probability": 0.9468,
+    "risk_score": 24.86,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
       {
-        "factor": "hotspot_probability",
-        "contribution": 38.87
+        "factor": "normalized_predicted_count",
+        "contribution": 16.13
       },
       {
         "factor": "persistence",
-        "contribution": 8.0
+        "contribution": 4.32
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-03-06 04:33:46+00:00",
+    "timestamp": "2024-02-22 03:00:46+00:00",
     "alert_level": "ORANGE",
-    "probability": 0.9522,
-    "risk_score": 54.14,
+    "probability": 0.9192,
+    "risk_score": 24.84,
     "risk_band": "HIGH",
     "recommendation": "Deploy enforcement",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.09
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 10.56
+        "contribution": 15.05
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 4.01
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-02-27 04:14:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9499,
-    "risk_score": 54.13,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9677,
+    "risk_score": 47.08,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.0
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 11.48
-      }
-    ]
-  },
-  {
-    "zone": "8960145b59bffff",
-    "junction_name": "BTP082 - KR Market Junction",
-    "timestamp": "2024-03-10 04:53:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9653,
-    "risk_score": 54.13,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.61
+        "contribution": 37.35
       },
       {
-        "factor": "persistence",
-        "contribution": 10.95
+        "factor": "recent_intensity",
+        "contribution": 3.89
       }
     ]
   },
   {
     "zone": "89618920923ffff",
     "junction_name": "No Junction",
-    "timestamp": "2024-02-24 00:11:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9596,
-    "risk_score": 54.12,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9677,
+    "risk_score": 47.0,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.38
-      },
-      {
-        "factor": "persistence",
-        "contribution": 14.12
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-27 04:14:46+00:00",
-    "alert_level": "ORANGE",
-    "probability": 0.9485,
-    "risk_score": 54.12,
-    "risk_band": "HIGH",
-    "recommendation": "Deploy enforcement",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.94
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 11.42
+        "contribution": 37.35
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9552,
+    "risk_score": 46.93,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.26
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9677,
+    "risk_score": 46.92,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.35
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9677,
+    "risk_score": 46.89,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.35
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.966,
+    "risk_score": 46.74,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9552,
+    "risk_score": 46.73,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.26
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.966,
+    "risk_score": 46.7,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9654,
+    "risk_score": 46.66,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9654,
+    "risk_score": 46.62,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9654,
+    "risk_score": 46.58,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9637,
+    "risk_score": 46.54,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9637,
+    "risk_score": 46.5,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.28
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9654,
+    "risk_score": 46.45,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.27
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9654,
+    "risk_score": 46.37,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.27
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9657,
+    "risk_score": 46.33,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.27
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9664,
+    "risk_score": 46.32,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 36.71
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-02-28 22:14:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9639,
+    "risk_score": 46.24,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.21
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.89
+      }
+    ]
+  },
+  {
+    "zone": "89618920923ffff",
+    "junction_name": "No Junction",
+    "timestamp": "2024-03-01 22:04:46+00:00",
+    "alert_level": "RED",
+    "probability": 0.9572,
+    "risk_score": 46.23,
+    "risk_band": "CRITICAL",
+    "recommendation": "Tow operation candidate",
+    "top_contributing_factors": [
+      {
+        "factor": "normalized_predicted_count",
+        "contribution": 37.25
+      },
+      {
+        "factor": "recent_intensity",
+        "contribution": 3.78
       }
     ]
   },
@@ -804,398 +1184,18 @@
     "junction_name": "No Junction",
     "timestamp": "2024-02-23 22:59:46+00:00",
     "alert_level": "RED",
-    "probability": 0.9692,
-    "risk_score": 64.33,
+    "probability": 0.9488,
+    "risk_score": 46.2,
     "risk_band": "CRITICAL",
     "recommendation": "Tow operation candidate",
     "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.77
-      },
       {
         "factor": "normalized_predicted_count",
-        "contribution": 12.0
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:39:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9474,
-    "risk_score": 63.99,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.9
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.1
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:40:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9478,
-    "risk_score": 63.98,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.91
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.92
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-23 22:53:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9676,
-    "risk_score": 63.89,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.7
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 12.16
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:42:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9548,
-    "risk_score": 63.89,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.19
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.46
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-28 22:14:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9821,
-    "risk_score": 63.85,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.71
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:42:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9549,
-    "risk_score": 63.84,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.2
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.46
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:42:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9557,
-    "risk_score": 63.83,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.23
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.53
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:40:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9468,
-    "risk_score": 63.81,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.87
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.85
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-28 22:14:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9821,
-    "risk_score": 63.8,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.71
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:40:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9468,
-    "risk_score": 63.76,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 37.87
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.85
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-28 22:14:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9821,
-    "risk_score": 63.74,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.71
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:35:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9679,
-    "risk_score": 63.72,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.72
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.79
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-23 22:55:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9676,
-    "risk_score": 63.71,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.7
+        "contribution": 33.2
       },
       {
         "factor": "persistence",
-        "contribution": 11.81
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:36:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9729,
-    "risk_score": 63.68,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.91
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.33
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:42:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.954,
-    "risk_score": 63.68,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.16
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.39
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:34:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9673,
-    "risk_score": 63.66,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.69
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.13
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-03-12 21:36:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9729,
-    "risk_score": 63.62,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 38.91
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 13.22
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-28 22:14:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9821,
-    "risk_score": 63.59,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.61
-      }
-    ]
-  },
-  {
-    "zone": "89618920923ffff",
-    "junction_name": "No Junction",
-    "timestamp": "2024-02-28 22:14:46+00:00",
-    "alert_level": "RED",
-    "probability": 0.9821,
-    "risk_score": 63.58,
-    "risk_band": "CRITICAL",
-    "recommendation": "Tow operation candidate",
-    "top_contributing_factors": [
-      {
-        "factor": "hotspot_probability",
-        "contribution": 39.28
-      },
-      {
-        "factor": "normalized_predicted_count",
-        "contribution": 14.71
+        "contribution": 8.6
       }
     ]
   }

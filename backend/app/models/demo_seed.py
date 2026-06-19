@@ -20,9 +20,9 @@ import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor
 
 from app.models.classifier import build_classification_dataset
-from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
 from app.models.recommendation import load_rules, recommend
-from app.models.risk_score import RiskMinMaxParams, compute_risk_score
+from app.models.risk_score import RiskParams, compute_risk_score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODELS_DIR = PROJECT_ROOT / "ml" / "models"
@@ -47,17 +47,17 @@ class DemoContext:
         self.classifier.load_model(str(MODELS_DIR / "classifier_catboost.cbm"))
         self.regressor = CatBoostRegressor()
         self.regressor.load_model(str(MODELS_DIR / "regressor_catboost.cbm"))
-        with open(MODELS_DIR / "risk_minmax_params.json", encoding="utf-8") as f:
-            self.risk_params = RiskMinMaxParams(**json.load(f))
+        with open(MODELS_DIR / "risk_params.json", encoding="utf-8") as f:
+            self.risk_params = RiskParams(**json.load(f))
         self.rules = load_rules()
-        self.feature_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+        self.feature_cols = NUMERIC_FEATURES + REDUCED_SPATIAL_CATEGORICAL_FEATURES
 
     def predict_row(self, row: pd.Series) -> dict:
         X = pd.DataFrame([row[self.feature_cols]])
         for col in NUMERIC_FEATURES:
             if isinstance(X[col].iloc[0], bool):
                 X[col] = X[col].astype(int)
-        for col in CATEGORICAL_FEATURES:
+        for col in REDUCED_SPATIAL_CATEGORICAL_FEATURES:
             X[col] = X[col].astype("string").fillna("MISSING").astype("category")
 
         proba = float(self.classifier.predict_proba(X)[:, 1][0])

@@ -6,6 +6,7 @@
 
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
+python-multipart==0.0.32
 pandas==2.2.2
 pyarrow==17.0.0
 pydantic==2.9.2
@@ -25,6 +26,7 @@ catboost==1.2.10
 lightgbm==4.6.0
 xgboost==3.2.0
 scikit-learn==1.9.0
+scipy==1.17.1
 shap==0.52.0
 
 # Risk/recommendation engine (Phase 5) — runtime deps for backend/app/models/

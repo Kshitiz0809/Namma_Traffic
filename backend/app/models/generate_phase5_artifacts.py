@@ -17,9 +17,9 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 
 from app.models.alerts import generate_alerts
 from app.models.classifier import build_classification_dataset
-from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
 from app.models.recommendation import load_rules, recommend
-from app.models.risk_score import RiskMinMaxParams, compute_risk_score
+from app.models.risk_score import RiskParams, compute_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +33,15 @@ def run() -> dict:
     features = pd.read_parquet(PROCESSED_DIR / "features.parquet")
     targets = pd.read_parquet(PROCESSED_DIR / "targets.parquet")
     split = build_classification_dataset(features, targets)
-    feature_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+    feature_cols = NUMERIC_FEATURES + REDUCED_SPATIAL_CATEGORICAL_FEATURES
 
     clf = CatBoostClassifier()
     clf.load_model(str(MODELS_DIR / "classifier_catboost.cbm"))
     reg = CatBoostRegressor()
     reg.load_model(str(MODELS_DIR / "regressor_catboost.cbm"))
 
-    with open(MODELS_DIR / "risk_minmax_params.json", encoding="utf-8") as f:
-        risk_params = RiskMinMaxParams(**json.load(f))
+    with open(MODELS_DIR / "risk_params.json", encoding="utf-8") as f:
+        risk_params = RiskParams(**json.load(f))
 
     rules = load_rules()
 

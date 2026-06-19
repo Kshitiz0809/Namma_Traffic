@@ -32,9 +32,9 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 from fastapi import APIRouter, HTTPException, Query
 
 from app.models.carriageway_impact import compute_carriageway_impact
-from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
 from app.models.recommendation import load_rules, recommend
-from app.models.risk_score import RiskMinMaxParams, compute_risk_score
+from app.models.risk_score import RiskParams, compute_risk_score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODELS_DIR = PROJECT_ROOT / "ml" / "models"
@@ -45,9 +45,19 @@ router = APIRouter()
 
 _classifier: CatBoostClassifier | None = None
 _regressor: CatBoostRegressor | None = None
-_risk_params: RiskMinMaxParams | None = None
+_risk_params: RiskParams | None = None
 _recommendation_rules: dict | None = None
 _latest_by_cell: pd.DataFrame | None = None
+
+
+def reload_state() -> None:
+    """Clear cached module state so the next request lazy-reloads fresh
+    models/parquet/params from disk — called by the admin retrain endpoint
+    after `retrain.run_pipeline()` writes new artifacts, so a running
+    process picks up a retrained model without needing a restart.
+    """
+    global _classifier, _regressor, _risk_params, _recommendation_rules, _latest_by_cell
+    _classifier = _regressor = _risk_params = _recommendation_rules = _latest_by_cell = None
 
 
 def _load_state() -> None:
@@ -65,8 +75,8 @@ def _load_state() -> None:
     _regressor = CatBoostRegressor()
     _regressor.load_model(str(MODELS_DIR / "regressor_catboost.cbm"))
 
-    with open(MODELS_DIR / "risk_minmax_params.json", encoding="utf-8") as f:
-        _risk_params = RiskMinMaxParams(**json.load(f))
+    with open(MODELS_DIR / "risk_params.json", encoding="utf-8") as f:
+        _risk_params = RiskParams(**json.load(f))
 
     _recommendation_rules = load_rules()
 
@@ -115,7 +125,7 @@ def _build_feature_row(snapshot: pd.Series, vehicle_type_override: str | None) -
         if isinstance(row[col], (bool, np.bool_)):
             row[col] = int(row[col])
 
-    return pd.DataFrame([row[NUMERIC_FEATURES + CATEGORICAL_FEATURES]])
+    return pd.DataFrame([row[NUMERIC_FEATURES + REDUCED_SPATIAL_CATEGORICAL_FEATURES]])
 
 
 def _cold_start_response(cell: str) -> dict:

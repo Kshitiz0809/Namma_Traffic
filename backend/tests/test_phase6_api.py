@@ -45,7 +45,7 @@ def test_metrics_endpoint_returns_real_model_numbers():
     body = r.json()
     assert body["model"]["winner"] == "catboost"
     assert body["operating_threshold"] == 0.15
-    assert body["feature_set"].startswith("FROZEN")
+    assert body["feature_set"].startswith("Retrainable")
     assert body["live_risk_distribution"]["total_cells"] > 0
 
 

@@ -1,21 +1,34 @@
 # Risk Definition — Parking-Induced Congestion Risk Engine
 
 Phase 5 Task 1. This is a **derived score, not a new ML target** (explicit
-instruction) — computed from the FROZEN Phase 3 model outputs
-(`ml/models/classifier_catboost.cbm`, `ml/models/regressor_catboost.cbm`,
-neither retrained this phase) plus existing leakage-safe features. Code:
-`backend/app/models/risk_score.py`.
+instruction) — computed from the model outputs
+(`ml/models/classifier_catboost.cbm`, `ml/models/regressor_catboost.cbm`)
+plus existing leakage-safe features. Code: `backend/app/models/risk_score.py`.
+
+**Phase 8 update (DECISIONS.md ADR-023):** the weights below were
+originally hand-picked. They are now FIT — via ridge-regularized
+non-negativity-constrained regression (NNLS) against `target_count_60m`
+(the closest available outcome proxy; there is still no ground-truth
+congestion/enforcement data in the provided dataset) — and refit
+automatically on every retrain. The formula shape is unchanged; only the
+weight values are now data-driven, persisted in `ml/models/risk_params.json`
+instead of hardcoded as a module constant.
 
 ## Formula
 
 ```
 risk_score = 100 * (
-    0.40 * hotspot_probability
-  + 0.30 * normalized_predicted_count
-  + 0.20 * persistence
-  + 0.10 * recent_intensity
+    w_hotspot  * hotspot_probability
+  + w_count    * normalized_predicted_count
+  + w_persist  * persistence
+  + w_recent   * recent_intensity
 )
 ```
+
+Current fitted weights (from the latest retrain — see `ml/models/risk_params.json`):
+`{hotspot_probability: 0.023, normalized_predicted_count: 0.701, persistence: 0.145, recent_intensity: 0.131}`.
+The original hand-picked starting point was `0.40 / 0.30 / 0.20 / 0.10` in
+the same component order — kept below for historical reference only.
 
 Scale: **0-100**, higher = higher operational risk.
 
@@ -28,15 +41,19 @@ Scale: **0-100**, higher = higher operational risk.
 | `persistence` | `rolling_hotspot_intensity` (Phase 2 feature, leakage-safe Hawkes-decay) | Min-max scaled to 0-1 — "how sustained has activity been in this cell" |
 | `recent_intensity` | `violations_last_15m` (Phase 2 feature) | Min-max scaled to 0-1 — "what just happened, right now" |
 
-## Why these specific weights (0.40 / 0.30 / 0.20 / 0.10)
+## Why these specific weights — original rationale (superseded, Phase 8)
 
-A direct, explicit instruction, not a learned/optimized weighting — same
-spirit as the Phase 3 `congestion_score` weights (ADR-011): the model's
-own probability output gets the largest share (it's the single most
-validated signal — Phase 3/3.5 spent the most rigor on it), followed by
-predicted severity, then how persistent the hotspot has been, then the
-most recent short-term spike. This is a starting formula for Phase 6 to
-calibrate against real outcomes if/when available, not a final tuned model.
+The original `0.40 / 0.30 / 0.20 / 0.10` weights were a direct, explicit
+instruction, not a learned/optimized weighting: the model's own probability
+output got the largest share, followed by predicted severity, persistence,
+then recent spike. **Phase 8 (ADR-023) replaced this with a fitted weight
+set** (see above) once a retraining pipeline existed to refit it against
+`target_count_60m` on every retrain — a plain NNLS fit first collapsed to
+100% weight on `normalized_predicted_count` alone (the regressor is
+literally trained to predict that same target, so this is near-tautological,
+not genuine signal diversity), which `fit_risk_weights`'s ridge
+regularization corrects by enforcing that no single component exceeds 75%
+of total weight.
 
 ## Normalization (leakage-safe, ADR-011 discipline)
 

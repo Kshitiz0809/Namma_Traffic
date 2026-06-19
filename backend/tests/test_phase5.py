@@ -16,7 +16,14 @@ from app.models.recommendation import (
     load_rules,
     recommend,
 )
-from app.models.risk_score import RiskMinMaxParams, assign_risk_band, compute_risk_score
+from app.models.risk_score import RiskParams, assign_risk_band, compute_risk_score
+
+EQUAL_WEIGHTS = {
+    "hotspot_probability": 0.40,
+    "normalized_predicted_count": 0.30,
+    "persistence": 0.20,
+    "recent_intensity": 0.10,
+}
 
 
 @pytest.fixture(scope="module")
@@ -32,16 +39,18 @@ def _make_features_df(n=3):
 
 
 def test_assign_risk_band_boundaries():
-    assert assign_risk_band(0.0) == "LOW"
-    assert assign_risk_band(33.99) == "LOW"
-    assert assign_risk_band(34.0) == "MEDIUM"
-    assert assign_risk_band(45.1) == "HIGH"
-    assert assign_risk_band(54.2) == "CRITICAL"
-    assert assign_risk_band(100.0) == "CRITICAL"
+    cutoffs = [34.0, 45.1, 54.2]
+    assert assign_risk_band(0.0, cutoffs) == "LOW"
+    assert assign_risk_band(33.99, cutoffs) == "LOW"
+    assert assign_risk_band(34.0, cutoffs) == "MEDIUM"
+    assert assign_risk_band(45.1, cutoffs) == "HIGH"
+    assert assign_risk_band(54.2, cutoffs) == "CRITICAL"
+    assert assign_risk_band(100.0, cutoffs) == "CRITICAL"
 
 
 def test_compute_risk_score_max_inputs_gives_100():
-    params = RiskMinMaxParams(
+    params = RiskParams(
+        weights=EQUAL_WEIGHTS, band_cutoffs=[34.0, 45.1, 54.2],
         predicted_count_min=0.0, predicted_count_max=10.0,
         rolling_intensity_min=0.0, rolling_intensity_max=10.0,
         recent_intensity_min=0.0, recent_intensity_max=10.0,
@@ -57,7 +66,8 @@ def test_compute_risk_score_max_inputs_gives_100():
 
 
 def test_compute_risk_score_min_inputs_gives_zero():
-    params = RiskMinMaxParams(
+    params = RiskParams(
+        weights=EQUAL_WEIGHTS, band_cutoffs=[34.0, 45.1, 54.2],
         predicted_count_min=0.0, predicted_count_max=10.0,
         rolling_intensity_min=0.0, rolling_intensity_max=10.0,
         recent_intensity_min=0.0, recent_intensity_max=10.0,
@@ -73,7 +83,8 @@ def test_compute_risk_score_min_inputs_gives_zero():
 
 
 def test_compute_risk_score_clips_out_of_range_predicted_count():
-    params = RiskMinMaxParams(
+    params = RiskParams(
+        weights=EQUAL_WEIGHTS, band_cutoffs=[34.0, 45.1, 54.2],
         predicted_count_min=0.0, predicted_count_max=10.0,
         rolling_intensity_min=0.0, rolling_intensity_max=10.0,
         recent_intensity_min=0.0, recent_intensity_max=10.0,

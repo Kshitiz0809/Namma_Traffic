@@ -22,6 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.ingestion.load_data import load_and_validate
+from app.serving.admin_service import router as admin_router
 from app.serving.alerts_service import router as alerts_router
 from app.serving.forecast_service import router as forecast_router
 from app.serving.metrics_service import router as metrics_router
@@ -55,6 +56,11 @@ app.include_router(forecast_router)
 app.include_router(alerts_router)
 app.include_router(metrics_router)
 app.include_router(replay_router)
+# /admin/* — server-side/ops use only (curl/Postman), not the browser
+# dashboard, so it's intentionally outside ALLOWED_ORIGINS/allow_methods
+# above. Guarded by its own X-Admin-Token check (admin_service._require_admin),
+# disabled entirely unless ADMIN_API_TOKEN is set.
+app.include_router(admin_router)
 
 
 @app.get("/")

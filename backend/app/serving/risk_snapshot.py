@@ -15,15 +15,23 @@ import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor
 
 from app.models.carriageway_impact import compute_carriageway_impact
-from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
 from app.models.recommendation import load_rules, recommend
-from app.models.risk_score import RiskMinMaxParams, compute_risk_score
+from app.models.risk_score import RiskParams, compute_risk_score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODELS_DIR = PROJECT_ROOT / "ml" / "models"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 _snapshot_df: pd.DataFrame | None = None
+
+
+def reload_state() -> None:
+    """Clear the cached snapshot so the next call recomputes from the
+    latest models/parquet on disk — called after an admin-triggered retrain.
+    """
+    global _snapshot_df
+    _snapshot_df = None
 
 
 def get_all_cell_risk_snapshot() -> pd.DataFrame:
@@ -39,8 +47,8 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
     classifier.load_model(str(MODELS_DIR / "classifier_catboost.cbm"))
     regressor = CatBoostRegressor()
     regressor.load_model(str(MODELS_DIR / "regressor_catboost.cbm"))
-    with open(MODELS_DIR / "risk_minmax_params.json", encoding="utf-8") as f:
-        risk_params = RiskMinMaxParams(**json.load(f))
+    with open(MODELS_DIR / "risk_params.json", encoding="utf-8") as f:
+        risk_params = RiskParams(**json.load(f))
     rules = load_rules()
 
     features = pd.read_parquet(PROCESSED_DIR / "features.parquet")
@@ -52,12 +60,12 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
     latest_idx = features.groupby("h3_cell")["created_datetime"].idxmax()
     latest = features.loc[latest_idx].reset_index(drop=True)
 
-    feature_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+    feature_cols = NUMERIC_FEATURES + REDUCED_SPATIAL_CATEGORICAL_FEATURES
     X = latest[feature_cols].copy()
     for col in NUMERIC_FEATURES:
         if X[col].dtype == bool:
             X[col] = X[col].astype(int)
-    for col in CATEGORICAL_FEATURES:
+    for col in REDUCED_SPATIAL_CATEGORICAL_FEATURES:
         X[col] = X[col].astype("string").fillna("MISSING").astype("category")
 
     hotspot_proba = classifier.predict_proba(X)[:, 1]

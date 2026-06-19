@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from app.models.classifier import build_classification_dataset, evaluate_classifier, train_catboost
-from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from app.models.feature_set import CATEGORICAL_FEATURES, NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
 
 HOLDOUT_FRAC = 0.20
 SEED = 42
@@ -36,9 +36,18 @@ def run_spatial_holdout_test(
     features_df: pd.DataFrame,
     targets_df: pd.DataFrame,
     target_col: str = "target_hotspot_60m",
+    categorical_features: list[str] = REDUCED_SPATIAL_CATEGORICAL_FEATURES,
 ) -> dict:
+    """Defaults to REDUCED_SPATIAL_CATEGORICAL_FEATURES (drops raw h3_cell/
+    geohash identity) — the production feature set after ADR-019/020. Pass
+    categorical_features=CATEGORICAL_FEATURES to reproduce the original
+    Phase 3.5 FAIL result for comparison.
+    """
+    # build_classification_dataset casts with the FULL categorical set so
+    # h3_cell survives in split.train/.val as a plain column for the cell-id
+    # grouping below, regardless of which narrower set is actually trained on.
     split = build_classification_dataset(features_df, targets_df, target_col)
-    feature_cols = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+    feature_cols = NUMERIC_FEATURES + categorical_features
 
     all_cells = split.train["h3_cell"].unique()
     train_cells, holdout_cells = split_cells(all_cells)
@@ -47,7 +56,7 @@ def run_spatial_holdout_test(
     X_train = train_rows[feature_cols]
     y_train = train_rows[target_col].to_numpy()
 
-    model = train_catboost(X_train, y_train, CATEGORICAL_FEATURES)
+    model = train_catboost(X_train, y_train, categorical_features)
 
     seen_rows = split.val[split.val["h3_cell"].isin(train_cells)]
     unseen_rows = split.val[split.val["h3_cell"].isin(holdout_cells)]

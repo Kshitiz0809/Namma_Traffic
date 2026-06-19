@@ -575,3 +575,167 @@ round (`docs/screenshots/README.md` documents each view's appearance in
 detail instead) rather than worked around at the cost of more disk churn.
 Space later recovered to ~6GB free — re-capturing real screenshots is a
 quick follow-up if desired, not a blocked task.
+
+---
+
+## ADR-022: Revisits ADR-019 — `h3_cell`/`geohash` dropped as model inputs, neighbor-averaged features added
+
+**Context for revisiting a "frozen" decision:** ADR-019 explicitly froze the
+feature set assuming a one-time training run. That assumption no longer
+holds — ADR-024 adds a retraining pipeline so the model is expected to be
+retrained periodically on new police-uploaded data, which can include
+genuinely new H3 cells. ADR-019's own reasoning already flagged this exact
+gap: *"the cold-start issue isn't fixed by dropping [h3_cell] — untested
+here per the explicit 'no additional variants' instruction."* This ADR is
+that untested variant, now that the constraint motivating it (one frozen
+training run, no further experiments) no longer applies.
+
+**Decision: drop `h3_cell`/`geohash` as model inputs, add neighbor-averaged
+features.** Two changes, both required together:
+1. `REDUCED_SPATIAL_CATEGORICAL_FEATURES` (already defined in ADR-019's
+   experiment but never adopted into the actual training pipeline) is now
+   the production categorical feature set — `train.py` trains on it instead
+   of the full `CATEGORICAL_FEATURES`. `h3_cell` itself is kept as a
+   dataframe column (serving lookups, spatial-holdout grouping) — it's
+   removed only as a model *input*.
+2. New neighbor-averaged features (`backend/app/features/spatial.py`'s
+   `add_neighbor_averaged_features`, called once in `spatial.py` for
+   density/junction-mix columns and once more in `rolling.py` for the
+   real-time intensity columns): for each row, the average of
+   `hotspot_frequency`/`violation_density`/`junction_density`/
+   `police_station_density`/`rolling_hotspot_intensity`/
+   `violations_last_15m` across the cell's H3 ring-1 neighbors, evaluated
+   as-of that row's own timestamp via `merge_asof` (leakage-safe — see the
+   function's docstring). This is the genuinely transferable spatial signal
+   ADR-019 didn't have: a cell the model has never seen can still inherit
+   "the neighborhood is hot" from cells it HAS seen, which raw cell-ID
+   categorical encoding cannot provide.
+
+**Result, measured via the same spatial holdout methodology as ADR-016:**
+PR-AUC drop on unseen cells improves from **7.88% (ADR-016 baseline) /
+7.09% (re-measured on this codebase before the fix) to 6.32%** — a real,
+verified improvement (re-run via `backend/app/models/spatial_holdout.py`,
+results written fresh on every retrain to `docs/spatial_holdout_result.json`
+rather than hardcoded). **This does NOT cross the original 5% acceptance
+bar — verdict stays FAIL, not PASS.**
+
+**Things tried that did NOT help further (so the next person doesn't
+re-try them):** widening the neighbor ring to k=2/k=3 (no measurable
+change, ~6.0-6.9% across ring sizes); additionally dropping
+`junction_name`/`police_station` as further location-correlated
+categoricals (6.05% vs 6.07% — negligible). The remaining ~6% gap looks
+like a genuine floor given what's derivable from this dataset alone (no
+external geographic/road-network data permitted, per ADR-001), not a
+tuning oversight.
+
+**Honest framing for the pitch:** this is a measured ~20% relative
+improvement in spatial generalization, not a fixed problem. Say "reduced
+the spatial generalization gap from 7.9% to 6.3% by removing cell-identity
+memorization and adding neighborhood-aggregated signal" — not "fixed
+spatial generalization."
+
+---
+
+## ADR-023: Risk score weights and band cutoffs are fit, not hand-picked — and why naive fitting fails
+
+**Context:** ADR-020's `risk_score` formula used hand-picked weights
+(0.40/0.30/0.20/0.10) and band cutoffs, explicitly flagged elsewhere
+(FINAL_SUMMARY.md) as "documented assumptions" rather than validated
+values. There is still no ground-truth congestion/enforcement-outcome data
+in the provided dataset (ADR-001 holds) — `target_count_60m` (actual
+realized violation count in the next 60 minutes) is the best available
+outcome proxy for "real-world impact."
+
+**First attempt failed instructively:** plain non-negativity-constrained
+regression (NNLS) of the 4 raw risk components against `target_count_60m`
+on the train split collapsed to **100% weight on `normalized_predicted_count`,
+0% on the other three.** This is not a bug, it's a near-tautology: the
+regressor was LITERALLY trained to predict `target_count_60m`, so
+regressing that same target against its own prediction trivially wins all
+the weight, zeroing out `hotspot_probability`/`persistence`/
+`recent_intensity` and reducing the "composite" score to "just use the
+regressor's number" — which defeats the purpose of a multi-factor score
+and makes "top contributing factors" meaningless (3 of 4 always read zero).
+
+**Fix: ridge-regularized NNLS** (`backend/app/models/risk_score.py`,
+`fit_risk_weights`/`_nnls_ridge`) — augments the NNLS system with an L2
+penalty (standard trick: append `sqrt(alpha)*I` rows), which spreads weight
+across the 4 components (pairwise correlation 0.48-0.63, confirmed via
+`components.corr()`) instead of collapsing onto whichever one is closest to
+the fitting target. The regularization strength isn't a fixed magic
+number — `fit_risk_weights` searches a candidate list smallest-first and
+keeps the first fit where no single component exceeds 75% of total weight,
+so it applies the *minimum* regularization needed to avoid collapse rather
+than an arbitrarily strong one. Result on the current train window:
+`{hotspot_probability: 0.023, normalized_predicted_count: 0.701,
+persistence: 0.145, recent_intensity: 0.131}` — predicted_count is still
+(correctly) the most informative single signal, but the other three now
+carry real, non-zero weight.
+
+**Band cutoffs are fit the same way as ADR-020 originally did** (50th/85th/
+97th percentile of train-period risk scores) but now computed fresh from
+the fitted weights every retrain, rather than hardcoded module constants.
+`WEIGHTS`/`RISK_BANDS` (old module-level constants) are replaced by one
+`RiskParams` dataclass, persisted to `ml/models/risk_params.json` and
+refit by `train.run()` on every retrain (see ADR-024) — so weights, bands,
+and min-max scaling all stay consistent with whichever model version is
+currently deployed, instead of three separately-maintained hardcoded values.
+
+**Honest framing:** this is a data-driven *proxy* fit against the best
+available outcome signal, not a measured causal weight — there is still no
+ground-truth traffic-congestion data to fit against directly (ADR-001).
+
+---
+
+## ADR-024: Retraining pipeline + admin API — closes the "frozen model" gap
+
+**Problem this closes:** prior to this ADR, incorporating new
+police-uploaded violation data required manually rerunning
+`build_features.py`/`train.py` and rebuilding+redeploying the Docker image
+— there was no mechanism reachable from the running API (`backend/app/main.py`
+only exposed `GET` routes; models/`docs/leaderboard.csv`/parquet were baked
+into the image at build time, per `backend/Dockerfile`).
+
+**Decision: a master, appendable raw CSV, separate from the frozen
+hackathon-provided dataset.** `backend/app/ingestion/raw_store.py` maintains
+`data/raw/violations_master.csv`, seeded once from `violations_raw.csv` (the
+original file is never written to — only read, once, to seed the copy).
+`append_new_violations` validates against the existing schema contract
+(`schema.py`'s `validate_schema`/`REQUIRED_NON_NULL`), dedupes by `id`
+against the master file, and reports added/duplicate/invalid counts rather
+than a bare success/failure.
+
+**Decision: one orchestrator function, not a new pipeline.**
+`backend/app/models/retrain.py`'s `run_pipeline()` sequences the EXISTING
+standalone scripts (`build_features.run()` → `train.run()` →
+`generate_phase5_artifacts.run()`) rather than reimplementing them — each
+already worked standalone (`python -m app.features.build_features`, etc.);
+this only adds archive/rollback bookkeeping (`ml/models/archive/<timestamp>/`,
+copied before any artifact is overwritten) on top. `train.run()` itself
+now also refits risk params (ADR-023) and re-runs the spatial holdout check
+(ADR-022) as part of every retrain — "retrain" means the whole stack
+refreshes together, not just the classifier weights.
+
+**Decision: FastAPI `BackgroundTasks` + in-memory job dict, not Celery/
+APScheduler.** Neither is a project dependency, and a single in-process
+background task is enough for one retrain at a time on a hackathon-scale
+deployment. `POST /admin/retrain` returns a `job_id` immediately;
+`GET /admin/retrain/{job_id}` polls status (PENDING/RUNNING/SUCCESS/FAILED).
+On success, the background task calls new `reload_state()` functions on
+`forecast_service`/`risk_snapshot`/`metrics_service` (each just clears
+cached module globals) so the running process picks up the retrained model
+**without a restart**.
+
+**Decision: minimal shared-secret guard, not a full auth system.** All
+`/admin/*` routes require an `X-Admin-Token` header matching
+`settings.admin_api_token` (env var; empty/unset disables the routes
+entirely with a 503, not a silent no-op). These routes can overwrite
+production models, so "unauthenticated by default" was not acceptable —
+but building real user auth was out of scope for what this gap needed.
+
+**Disclosed limitation, not hidden:** on ephemeral-filesystem hosts
+(Render/HF Space free tier), `data/raw/violations_master.csv` and retrained
+artifacts won't survive a redeploy unless a persistent volume is attached.
+The retrain mechanism works correctly within a running process's lifetime;
+surviving redeploys is a deployment-infrastructure decision (attach a
+volume), not a code gap.

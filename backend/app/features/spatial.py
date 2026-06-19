@@ -85,7 +85,75 @@ def add_spatial_density_features(df: pd.DataFrame) -> pd.DataFrame:
     return sorted_df.loc[original_index]
 
 
+def add_neighbor_averaged_features(
+    df: pd.DataFrame, value_cols: list[str], ring: int = 1, prefix: str = "neighbor_"
+) -> pd.DataFrame:
+    """Average each of `value_cols` across a cell's H3 ring-`ring` neighbors,
+    evaluated as of each row's own `created_datetime` ("how hot is the
+    surrounding neighborhood right now", not just this exact cell). Unlike
+    raw `h3_cell` identity, this is genuinely transferable to a cell the
+    model has never seen during training — a new cell surrounded by
+    historically hot neighbors still carries signal, which raw cell-ID
+    categorical encoding cannot provide (ADR-019/ADR-020
+    spatial-generalization fix).
+
+    Leakage-safe by construction: every column in `value_cols` must itself
+    already be a leakage-safe expanding/windowed feature (computed using
+    only each row's own history strictly before it — true of
+    `hotspot_frequency`, `violation_density`, `junction_density`,
+    `police_station_density`, `rolling_hotspot_intensity`,
+    `violations_last_15m` etc. in this codebase). This function only looks
+    up a neighbor's most recent *already leakage-safe* value as of the same
+    timestamp (via `merge_asof(direction="backward")`), so it never reaches
+    into the future relative to the row being featurized. Callable at any
+    point in the pipeline once `value_cols` exist — used once right after
+    `add_spatial_density_features` (this module) and once more after
+    `add_rolling_features` (rolling.py), since those features don't exist
+    yet at the spatial stage.
+
+    Requires `h3_cell` and `created_datetime` to already exist on `df`.
+    """
+    df = df.copy()
+    original_index = df.index
+    row_id_col = "_row_id"
+    sorted_df = df.sort_values("created_datetime", kind="stable").copy()
+    sorted_df[row_id_col] = sorted_df.index
+
+    unique_cells = sorted_df["h3_cell"].unique()
+    neighbor_map = {cell: [n for n in h3.grid_disk(cell, ring) if n != cell] for cell in unique_cells}
+
+    history = (
+        sorted_df[["h3_cell", "created_datetime", *value_cols]]
+        .rename(columns={"h3_cell": "neighbor_cell"})
+        .sort_values("created_datetime", kind="stable")
+    )
+
+    exploded = sorted_df[[row_id_col, "h3_cell", "created_datetime"]].copy()
+    exploded["neighbor_cell"] = exploded["h3_cell"].map(neighbor_map)
+    exploded = exploded.explode("neighbor_cell").dropna(subset=["neighbor_cell"])
+    exploded = exploded.sort_values("created_datetime", kind="stable")
+
+    merged = pd.merge_asof(
+        exploded, history, on="created_datetime", by="neighbor_cell", direction="backward",
+    )
+
+    new_cols = {col: f"{prefix}{col}" for col in value_cols}
+    neighbor_agg = merged.groupby(row_id_col)[value_cols].mean().rename(columns=new_cols)
+
+    sorted_df = sorted_df.set_index(row_id_col)
+    sorted_df[list(new_cols.values())] = neighbor_agg[list(new_cols.values())]
+    sorted_df[list(new_cols.values())] = sorted_df[list(new_cols.values())].fillna(0.0)
+
+    return sorted_df.loc[original_index]
+
+
+NEIGHBOR_SPATIAL_VALUE_COLS = [
+    "hotspot_frequency", "violation_density", "junction_density", "police_station_density",
+]
+
+
 def add_spatial_features(df: pd.DataFrame) -> pd.DataFrame:
     df = add_h3_geohash(df)
     df = add_spatial_density_features(df)
+    df = add_neighbor_averaged_features(df, NEIGHBOR_SPATIAL_VALUE_COLS)
     return df

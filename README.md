@@ -239,8 +239,9 @@ than false positives; see `docs/threshold_selection.md`).
 |---|---|---|
 | Cost-aware threshold | 0.30 → **0.15** | Adopted |
 | Platt/Isotonic calibration | < 5% Brier improvement | Rejected — bar not cleared |
-| **Spatial holdout (unseen H3 cells)** | **7.88% PR-AUC drop** | **FAIL — disclosed** |
-| Remove `h3_cell` entirely | Only 0.55% PR-AUC drop | Feature kept; set frozen |
+| **Spatial holdout (unseen H3 cells)** | 7.88% PR-AUC drop (original) → **6.32% after ADR-022** | **FAIL — improved, not fully cleared (5% bar)** |
+| Remove `h3_cell`/`geohash` + add neighbor-averaged features (ADR-022) | Drop reduced 7.09%→6.32% (ring-2/3 and dropping more categoricals tried, no further gain) | Adopted as production default |
+| Risk score weights | Hand-picked (0.40/0.30/0.20/0.10) → fit via ridge-regularized NNLS against `target_count_60m` (ADR-023) | Adopted; refit on every retrain |
 
 ---
 
@@ -307,6 +308,24 @@ Returns top alerts sorted by `risk_score` descending.
 ### GET /metrics
 Returns model leaderboard + live risk distribution snapshot.
 
+### Admin API (retraining — ADR-024)
+
+Closes the "frozen model" gap: police-uploaded CSVs can be ingested and the
+full pipeline (features → models → risk params → spatial holdout check)
+retrained without redeploying. Guarded by an `X-Admin-Token` header
+matching `ADMIN_API_TOKEN` (unset = disabled, 503).
+
+| Endpoint | What it does |
+|---|---|
+| `POST /admin/ingest` | Upload a new violations CSV; validates schema, dedupes by `id` against the master raw store, appends. Does not retrain by itself. |
+| `POST /admin/retrain` | Triggers the full retrain pipeline in the background; returns a `job_id` immediately. |
+| `GET /admin/retrain/{job_id}` | Poll job status (`PENDING`/`RUNNING`/`SUCCESS`/`FAILED`) + result metrics. |
+
+On success, the running process hot-reloads models/risk params without a
+restart. Known limitation: on ephemeral-filesystem hosts (Render/HF Space
+free tier), the master raw CSV and retrained artifacts won't survive a
+redeploy unless a persistent volume is attached.
+
 ---
 
 ## Dashboard
@@ -331,11 +350,18 @@ These are disclosed upfront, not buried in an appendix:
 
 1. **Cold-start geography** — model was trained on 2,534 H3 cells seen in the
    dataset. For brand-new cells (new enforcement zones), the API returns a
-   conservative default. Retrain on expanded coverage to fix.
+   conservative default. The retraining pipeline (ADR-024, see Admin API
+   above) lets new coverage be incorporated without a manual redeploy.
 
-2. **Spatial holdout FAIL** — on a held-out set of H3 cells with zero training
-   history, PR-AUC drops 7.88% (Phase 3.5 experiment). The model generalizes
-   well within the observed area, not to completely new areas.
+2. **Spatial holdout FAIL, improved** — on a held-out set of H3 cells with
+   zero training history, PR-AUC dropped 7.88% originally; ADR-022 (dropping
+   raw `h3_cell`/`geohash` as model inputs + adding neighbor-averaged
+   density/intensity features) reduced this to **6.32%** — a real ~20%
+   relative improvement, but still above the project's own 5% acceptance bar.
+   Widening the neighbor ring and dropping further location-correlated
+   categoricals were tried and didn't move it further — this looks like a
+   genuine floor given what's derivable from this dataset alone (no external
+   geographic data permitted), not a tuning oversight.
 
 3. **Missing enforcement timestamps** — `closed_datetime` and
    `action_taken_timestamp` are 100% missing in this extract. Resolution time
@@ -344,12 +370,21 @@ These are disclosed upfront, not buried in an appendix:
 4. **Single data extract** — data covers Nov 2023 – Apr 2024 only. Seasonal
    patterns outside this window are untested.
 
-5. **Risk weights are assumed** — `risk_score = 0.40×prob + 0.30×count +
-   0.20×persistence + 0.10×intensity` is a documented starting point, not
-   validated against real intervention outcomes (none exist in this dataset).
+5. **Risk weights are fit, not assumed (ADR-023)** — `risk_score` weights
+   were originally hand-picked (0.40/0.30/0.20/0.10); they're now fit via
+   ridge-regularized NNLS against `target_count_60m` (the best available
+   outcome proxy — there's still no ground-truth congestion/enforcement
+   data in this dataset) and refit automatically on every retrain. Still a
+   proxy fit, not a measured causal weight.
 
 6. **No live streaming** — dashboard shows the latest historical snapshot per
    cell, not a real-time feed. A Kafka streaming layer is the natural next step.
+
+7. **Retraining doesn't survive ephemeral redeploys** — the admin retrain
+   pipeline (ADR-024) works correctly within a running process's lifetime,
+   but on free-tier hosts without a persistent volume, the appended raw data
+   and retrained models are lost on the next redeploy. Attaching a volume is
+   a deployment-infrastructure decision, not a code gap.
 
 ---
 
@@ -358,11 +393,11 @@ These are disclosed upfront, not buried in an appendix:
 | Area | What would change |
 |---|---|
 | **Real-time streaming** | Kafka producer → consumer → live feature updates |
-| **Expanded coverage** | More data from more zones to fix cold-start FAIL |
+| **Expanded coverage** | More data from more zones to fully close the spatial holdout gap (6.32% → <5%) |
 | **Enforcement feedback** | If `closed_datetime` becomes available, add resolution-time features |
 | **Causal validation** | A/B test: does acting on an alert actually reduce violations? |
-| **Model retraining** | Automated retraining pipeline when new data arrives |
-| **Auth + multi-tenant** | Per-station access control for a multi-user deployment |
+| **Persistent retraining storage** | Attach a volume so `/admin/retrain` artifacts survive redeploys on ephemeral hosts |
+| **Auth + multi-tenant** | Replace the shared-secret admin token with per-station access control |
 
 ---
 

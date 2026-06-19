@@ -10,8 +10,16 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.features.spatial import add_neighbor_averaged_features
+
 ROLLING_WINDOWS_MINUTES = [15, 30, 60]
 HOTSPOT_INTENSITY_HALFLIFE_HOURS = 24
+
+# Neighbor-averaged versions of the two "real-time" rolling signals, added
+# AFTER add_rolling_features (these columns don't exist at the spatial.py
+# stage) — same ADR-019/020 spatial-generalization motivation as
+# spatial.NEIGHBOR_SPATIAL_VALUE_COLS, applied to the windowed features too.
+NEIGHBOR_ROLLING_VALUE_COLS = ["rolling_hotspot_intensity", "violations_last_15m"]
 
 
 def _rolling_count(sorted_df: pd.DataFrame, minutes: int) -> pd.Series:
@@ -121,4 +129,5 @@ def add_rolling_features(df: pd.DataFrame) -> pd.DataFrame:
     df = add_rolling_window_counts(df)
     df = add_same_hour_previous_day(df)
     df = add_rolling_hotspot_intensity(df)
+    df = add_neighbor_averaged_features(df, NEIGHBOR_ROLLING_VALUE_COLS)
     return df
