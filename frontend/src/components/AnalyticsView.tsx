@@ -168,8 +168,8 @@ export default function AnalyticsView() {
             value={`${metrics.operational_horizon_minutes} min`}
           />
           <StatCard
-            label="Spatial holdout"
-            value={metrics.spatial_robustness.holdout_verdict}
+            label="Spatial holdout (unseen-cell accuracy drop)"
+            value={`-${metrics.spatial_robustness.holdout_pr_auc_drop_pct.toFixed(2)}%`}
             warn={holdoutFail}
           />
           <StatCard
@@ -187,8 +187,9 @@ export default function AnalyticsView() {
               tested on H3 cells the model never saw during training, accuracy
               drops by{" "}
               {metrics.spatial_robustness.holdout_pr_auc_drop_pct.toFixed(1)}%
-              — more than this project&apos;s own 3% pass threshold. In plain
-              terms: predictions are reliable for zones inside the trained
+              — more than this project&apos;s own 5% pass threshold (improved
+              from 7.88% across two rounds of fixes — see docs/spatial_dependency.md).
+              In plain terms: predictions are reliable for zones inside the trained
               geography (Bengaluru hotspots already in the dataset), but the
               model would <em>not</em> generalize cleanly to a brand-new city
               or an unseen district. The{" "}
