@@ -1,0 +1,7 @@
+ml/models/archive/
+**/__pycache__/
+*.pyc
+.venv/
+frontend/node_modules/
+frontend/.next/
+.git/

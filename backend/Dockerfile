@@ -28,9 +28,10 @@ COPY ml/models/ ml/models/
 # Processed feature/target parquet (also gitignored — regenerate via
 # `python -m app.features.build_features`).
 COPY data/processed/ data/processed/
-# Docs the API reads at request time (leaderboard.csv for /metrics,
-# recommendation_rules.yaml for the rule engine) — these ARE committed.
+# Docs the API reads at request time (leaderboard.csv + spatial_holdout_result.json
+# for /metrics, recommendation_rules.yaml for the rule engine) — these ARE committed.
 COPY docs/leaderboard.csv docs/leaderboard.csv
+COPY docs/spatial_holdout_result.json docs/spatial_holdout_result.json
 COPY docs/recommendation_rules.yaml docs/recommendation_rules.yaml
 
 WORKDIR /app/backend
