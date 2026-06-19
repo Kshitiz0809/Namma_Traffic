@@ -124,3 +124,44 @@ export interface HealthResponse {
   schema_valid: boolean;
   missing_columns: string[];
 }
+
+// Admin API (retraining pipeline) — see backend/app/serving/admin_service.py
+// and backend/app/ingestion/staging_store.py. Uploaded CSVs land here as
+// PENDING before a reviewer approves (merges into the master raw dataset)
+// or rejects them; retraining is a separate, explicit action on top.
+export interface AppendResult {
+  rows_received: number;
+  rows_added: number;
+  rows_duplicate: number;
+  rows_invalid: number;
+  invalid_reasons: string[];
+  master_row_count: number;
+  master_path: string;
+}
+
+export interface StagingRecord {
+  staging_id: string;
+  original_filename: string;
+  uploaded_at: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  row_count: number;
+  schema_valid: boolean;
+  missing_columns: string[];
+  null_counts: Record<string, number>;
+  resolved_at: string | null;
+  merge_result: AppendResult | null;
+  reject_reason: string | null;
+}
+
+export interface StagingDetail extends StagingRecord {
+  preview_rows: Record<string, string>[];
+}
+
+export interface RetrainJob {
+  job_id: string;
+  status: "PENDING" | "RUNNING" | "SUCCESS" | "FAILED";
+  started_at: string;
+  finished_at: string | null;
+  result: Record<string, unknown> | null;
+  error: string | null;
+}

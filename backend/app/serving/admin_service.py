@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 import tempfile
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,6 +32,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFi
 from fastapi import Header
 
 from app.core.config import settings
+from app.ingestion import staging_store
 from app.ingestion.load_data import load_raw_violations
 from app.ingestion.raw_store import MASTER_RAW_PATH, append_new_violations, load_master
 from app.models import retrain
@@ -61,11 +62,11 @@ def _require_admin(x_admin_token: str | None = Header(default=None)) -> None:
         raise HTTPException(status_code=401, detail="Invalid or missing X-Admin-Token header.")
 
 
-@router.post("/ingest", dependencies=[Depends(_require_admin)])
-async def ingest(file: UploadFile):
-    """Validate + dedupe + append a new violations CSV to the master raw
-    dataset (does NOT retrain by itself — call /admin/retrain after, or in
-    the same workflow, to actually incorporate the new rows into the model).
+async def _load_uploaded_csv(file: UploadFile):
+    """Shared by /ingest and /staging/upload: write the upload to a temp
+    file, then re-load through the same typed/parsed path as the original
+    dataset (explicit dtypes + datetime parsing in load_raw_violations)
+    rather than trusting the upload's raw string dtypes.
     """
     raw_bytes = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
@@ -73,15 +74,21 @@ async def ingest(file: UploadFile):
         tmp_path = Path(tmp.name)
 
     try:
-        # Re-load through the same typed/parsed path as the original
-        # dataset (explicit dtypes + datetime parsing in load_raw_violations)
-        # rather than trusting the upload's raw string dtypes.
-        new_df = load_raw_violations(tmp_path)
+        return load_raw_violations(tmp_path)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not parse uploaded CSV: {exc}") from exc
     finally:
         tmp_path.unlink(missing_ok=True)
 
+
+@router.post("/ingest", dependencies=[Depends(_require_admin)])
+async def ingest(file: UploadFile):
+    """Validate + dedupe + append a new violations CSV DIRECTLY to the
+    master raw dataset, bypassing the staging review step below (does NOT
+    retrain by itself — call /admin/retrain after). Kept for scripted/CI use;
+    the staging endpoints are the reviewed path a human operator should use.
+    """
+    new_df = await _load_uploaded_csv(file)
     result = append_new_violations(new_df)
     return {
         "rows_received": result.rows_received,
@@ -91,6 +98,46 @@ async def ingest(file: UploadFile):
         "invalid_reasons": result.invalid_reasons,
         "master_row_count": result.master_row_count,
     }
+
+
+@router.post("/staging/upload", dependencies=[Depends(_require_admin)])
+async def upload_staging(file: UploadFile):
+    """Stages an uploaded CSV as PENDING — does NOT merge it into the
+    master dataset yet. A reviewer inspects it (GET /admin/staging/{id})
+    and explicitly approves or rejects it.
+    """
+    new_df = await _load_uploaded_csv(file)
+    record = staging_store.stage_upload(new_df, file.filename or "upload.csv")
+    return asdict(record)
+
+
+@router.get("/staging", dependencies=[Depends(_require_admin)])
+def list_staging():
+    return {"staged": [asdict(r) for r in staging_store.list_staged()]}
+
+
+@router.get("/staging/{staging_id}", dependencies=[Depends(_require_admin)])
+def get_staging(staging_id: str):
+    record = staging_store.get_staged(staging_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Unknown staging_id.")
+    return {**asdict(record), "preview_rows": staging_store.get_preview_rows(record)}
+
+
+@router.post("/staging/{staging_id}/approve", dependencies=[Depends(_require_admin)])
+def approve_staging(staging_id: str):
+    result = staging_store.approve_staged(staging_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Unknown staging_id, or not PENDING.")
+    return asdict(result)
+
+
+@router.post("/staging/{staging_id}/reject", dependencies=[Depends(_require_admin)])
+def reject_staging(staging_id: str, reason: str | None = None):
+    record = staging_store.reject_staged(staging_id, reason)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Unknown staging_id, or not PENDING.")
+    return asdict(record)
 
 
 def _run_retrain_job(job_id: str) -> None:

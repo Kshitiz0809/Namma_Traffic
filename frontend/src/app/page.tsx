@@ -7,9 +7,11 @@ import {
   LineChart,
   MapPin,
   ShieldCheck,
+  UploadCloud,
 } from "lucide-react";
 import { useState } from "react";
 
+import AdminPanel from "@/components/AdminPanel";
 import AnalyticsView from "@/components/AnalyticsView";
 import ForecastPanel from "@/components/ForecastPanel";
 import OperationsView from "@/components/OperationsView";
@@ -29,6 +31,7 @@ const TABS = [
   { id: "forecast", label: "Forecast Panel", icon: LineChart },
   { id: "operations", label: "Operations View", icon: ClipboardList },
   { id: "analytics", label: "Analytics View", icon: BarChart3 },
+  { id: "admin", label: "Admin", icon: UploadCloud },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -116,6 +119,7 @@ export default function Home() {
         )}
         {activeTab === "operations" && <OperationsView />}
         {activeTab === "analytics" && <AnalyticsView />}
+        {activeTab === "admin" && <AdminPanel />}
       </div>
 
       <footer className="max-w-7xl mx-auto px-6 py-5 text-xs text-slate-400 border-t border-slate-200 flex flex-wrap gap-x-2 gap-y-1">
@@ -123,9 +127,7 @@ export default function Home() {
         <span className="text-slate-300">·</span>
         <span>No external predictive data</span>
         <span className="text-slate-300">·</span>
-        <span>Feature set frozen (Phase 4 lock)</span>
-        <span className="text-slate-300">·</span>
-        <span>Models not retrained by this dashboard</span>
+        <span>Feature set retrainable (Phase 8 — see Admin tab)</span>
       </footer>
     </main>
   );

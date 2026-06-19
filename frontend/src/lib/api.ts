@@ -4,10 +4,14 @@
 
 import type {
   AlertsResponse,
+  AppendResult,
   ForecastResponse,
   HealthResponse,
   MetricsResponse,
   ReplayResponse,
+  RetrainJob,
+  StagingDetail,
+  StagingRecord,
 } from "./types";
 
 const API_BASE_URL =
@@ -57,6 +61,53 @@ export function getMetrics() {
 
 export function getReplay(scenario: string) {
   return getJson<ReplayResponse>(`/replay/${scenario}`);
+}
+
+// --- Admin API (retraining pipeline) ---
+// Every call here sends X-Admin-Token; the backend returns 503 if
+// ADMIN_API_TOKEN isn't configured server-side, or 401 if the token is wrong.
+async function adminFetch<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: { ...(init.headers || {}), "X-Admin-Token": token },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail || `${path} failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export function uploadStagingFile(file: File, token: string) {
+  const form = new FormData();
+  form.append("file", file);
+  return adminFetch<StagingRecord>("/admin/staging/upload", token, { method: "POST", body: form });
+}
+
+export function listStaging(token: string) {
+  return adminFetch<{ staged: StagingRecord[] }>("/admin/staging", token);
+}
+
+export function getStaging(stagingId: string, token: string) {
+  return adminFetch<StagingDetail>(`/admin/staging/${stagingId}`, token);
+}
+
+export function approveStaging(stagingId: string, token: string) {
+  return adminFetch<AppendResult>(`/admin/staging/${stagingId}/approve`, token, { method: "POST" });
+}
+
+export function rejectStaging(stagingId: string, token: string, reason?: string) {
+  const qs = reason ? `?reason=${encodeURIComponent(reason)}` : "";
+  return adminFetch<StagingRecord>(`/admin/staging/${stagingId}/reject${qs}`, token, { method: "POST" });
+}
+
+export function triggerRetrain(token: string) {
+  return adminFetch<{ job_id: string; status: string }>("/admin/retrain", token, { method: "POST" });
+}
+
+export function getRetrainStatus(jobId: string, token: string) {
+  return adminFetch<RetrainJob>(`/admin/retrain/${jobId}`, token);
 }
 
 export { API_BASE_URL };
