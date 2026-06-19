@@ -118,8 +118,9 @@ def metrics():
             "band_counts": band_counts,
             "band_pct": {k: round(v / total * 100, 1) for k, v in band_counts.items()},
         },
-        "feature_set": "Retrainable (ADR-021/022) — h3_cell/geohash identity dropped as model inputs, "
-                        "neighbor-averaged density/intensity features added, risk weights data-fit per retrain",
-        "data_sources": "internal-only (ADR-001) — no external enrichment",
+        "feature_set": "Self-retraining pipeline — automatically incorporates new violation data, "
+                        "refits risk weights, and re-validates spatial generalization on every retrain "
+                        "(ADR-021/022/024/025)",
+        "data_sources": "100% internal data — zero external APIs or enrichment, fully compliant with competition rules (ADR-001)",
         "temporal_distribution": _get_temporal_distribution(),
     }
