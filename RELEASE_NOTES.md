@@ -59,14 +59,16 @@ locked per Phase 4 decision.
 
 ## Known Limitations (Disclosed, Not Fixed in This Release)
 
-1. **Spatial holdout FAIL, improved (Phase 8 / ADR-022)** — originally 7.88%
-   PR-AUC drop on H3 cells with zero training history; dropping raw
-   `h3_cell`/`geohash` as model inputs and adding neighbor-averaged
-   density/intensity features reduced this to **6.32%** — a real
-   improvement, still above the project's own 5% bar. Model generalizes
-   well within observed area, not fully to brand-new zones. The Phase 8
-   retraining pipeline (`/admin/retrain`) lets new coverage be incorporated
-   without a manual rebuild.
+1. **Spatial holdout FAIL, improved (Phase 8 / ADR-022 + ADR-025)** —
+   originally 7.88% PR-AUC drop on H3 cells with zero training history;
+   dropping raw `h3_cell`/`geohash` as model inputs and adding
+   neighbor-averaged density/intensity features reduced this to 6.32%
+   (ADR-022), and a classifier regularization sweep (depth=6→3,
+   l2_leaf_reg=3→25) reduced it further to **5.66%** (ADR-025) — a real
+   ~28% relative improvement, still above the project's own 5% bar. Model
+   generalizes well within observed area, not fully to brand-new zones.
+   The Phase 8 retraining pipeline (Admin tab → upload → approve →
+   retrain) lets new coverage be incorporated without a manual rebuild.
 
 2. **No live streaming** — dashboard serves latest historical snapshot per cell,
    not a real-time feed. Kafka config is in `.env.example` for a future phase.

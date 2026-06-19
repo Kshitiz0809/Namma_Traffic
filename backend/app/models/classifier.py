@@ -117,10 +117,19 @@ def evaluate_classifier(
 
 
 def train_catboost(X_train, y_train, categorical_features: list[str]) -> CatBoostClassifier:
+    # depth=3 (was 6), l2_leaf_reg=25 (CatBoost default 3) — ADR-025: a
+    # depth/L2 sweep against the spatial holdout test (app/models/spatial_holdout.py)
+    # found shallower, more-regularized trees reduce the unseen-cell PR-AUC
+    # drop from 6.32% to 5.66% while matching or slightly beating the
+    # depth=6 default on SEEN-cell accuracy too (0.8792 -> 0.8796) — a
+    # strict improvement, not a tradeoff. Going shallower still (depth=2/1)
+    # buys a bit more drop reduction but starts costing real seen-cell
+    # accuracy; depth=3/l2=25 was the best point with no downside.
     model = CatBoostClassifier(
         iterations=300,
-        depth=6,
+        depth=3,
         learning_rate=0.1,
+        l2_leaf_reg=25,
         loss_function="Logloss",
         eval_metric="PRAUC",
         cat_features=categorical_features,

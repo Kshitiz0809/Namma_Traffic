@@ -1,14 +1,14 @@
 {
   "weights": {
-    "hotspot_probability": 0.023496592524288356,
-    "normalized_predicted_count": 0.7014114201242017,
-    "persistence": 0.14457702929620866,
-    "recent_intensity": 0.13051495805530125
+    "hotspot_probability": 0.020321466279065115,
+    "normalized_predicted_count": 0.701473280073285,
+    "persistence": 0.14711099222129678,
+    "recent_intensity": 0.13109426142635297
   },
   "band_cutoffs": [
-    7.057362142899967,
-    14.222013270247855,
-    24.92136186765621
+    6.834851446451506,
+    13.977311629525095,
+    24.703030027376165
   ],
   "predicted_count_min": -2.6981120036058943,
   "predicted_count_max": 114.51948876915722,

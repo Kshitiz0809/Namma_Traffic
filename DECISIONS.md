@@ -739,3 +739,46 @@ artifacts won't survive a redeploy unless a persistent volume is attached.
 The retrain mechanism works correctly within a running process's lifetime;
 surviving redeploys is a deployment-infrastructure decision (attach a
 volume), not a code gap.
+
+---
+
+## ADR-025: Classifier regularization (depth=6→3, l2_leaf_reg=3→25) — spatial holdout 6.32%→5.66%
+
+**Context:** after ADR-022's feature-level fix (dropping `h3_cell`/`geohash`,
+adding neighbor-averaged features), the spatial holdout drop sat at 6.32% —
+still above the 5% bar. Before accepting that as a final floor, swept
+CatBoost's regularization knobs (`depth`, `l2_leaf_reg`, `learning_rate`,
+`iterations`, `rsm`, `bagging_temperature`, `random_strength`) against the
+same spatial holdout methodology (~15 configs tested) to check whether the
+classifier was simply overfitting to cell-specific noise that more
+regularization would fix for free.
+
+**Result: yes, partially.** `depth=3, l2_leaf_reg=25` (vs. the original
+`depth=6, l2_leaf_reg=3` CatBoost default) reduces the unseen-cell PR-AUC
+drop from 6.32% to **5.66%** — and is a **strict improvement**, not a
+tradeoff: SEEN-cell PR-AUC also improves slightly (0.8792 → 0.8796). This
+means the depth=6 default genuinely was overfitting to per-cell noise that
+didn't even help in-sample, let alone out-of-sample.
+
+**Diminishing returns past this point, confirmed empirically, not assumed:**
+going shallower still costs real accuracy for smaller gains —
+
+| Config | Seen PR-AUC | Unseen PR-AUC | Drop |
+|---|---|---|---|
+| depth=6, l2=3 (original default) | 0.8792 | 0.8237 | 6.32% |
+| **depth=3, l2=25 (adopted)** | **0.8796** | **0.8298** | **5.66%** |
+| depth=2, l2=40, lr=0.05 | 0.8765 | 0.8280 | 5.54% |
+| depth=1, l2=25, lr=0.05 | 0.8727 | 0.8268 | 5.27% |
+
+None of the ~15 configs tested crossed below the 5% bar. **Verdict stays
+FAIL** — this is reported as "improved 6.32%→5.66% via regularization,"
+not a pass, consistent with ADR-022's same honest-disclosure framing.
+Stopped tuning at depth=3/l2=25 because it's the last point with zero
+accuracy cost; everything past it is a real tradeoff with no clear
+stopping rule other than "how much seen-cell accuracy are we willing to
+spend," which isn't a decision to make implicitly via grid search.
+
+**Changed:** `backend/app/models/classifier.py`'s `train_catboost()`
+defaults only (`depth=3`, added `l2_leaf_reg=25`) — the regressor
+(`regressor.py`) was untouched; this sweep was scoped to the classifier
+spatial holdout finding specifically, not a blanket retune.

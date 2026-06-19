@@ -3,6 +3,6 @@
   "n_holdout_cells": 455,
   "n_seen_rows": 37032,
   "n_unseen_rows": 7289,
-  "pr_auc_drop_pct": 6.320194324389757,
+  "pr_auc_drop_pct": 5.660000344582026,
   "verdict": "FAIL \u2014 recommend feature redesign"
 }

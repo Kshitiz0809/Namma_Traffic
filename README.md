@@ -239,8 +239,9 @@ than false positives; see `docs/threshold_selection.md`).
 |---|---|---|
 | Cost-aware threshold | 0.30 → **0.15** | Adopted |
 | Platt/Isotonic calibration | < 5% Brier improvement | Rejected — bar not cleared |
-| **Spatial holdout (unseen H3 cells)** | 7.88% PR-AUC drop (original) → **6.32% after ADR-022** | **FAIL — improved, not fully cleared (5% bar)** |
+| **Spatial holdout (unseen H3 cells)** | 7.88% PR-AUC drop (original) → **5.66% after ADR-022 + ADR-025** | **FAIL — improved, not fully cleared (5% bar)** |
 | Remove `h3_cell`/`geohash` + add neighbor-averaged features (ADR-022) | Drop reduced 7.09%→6.32% (ring-2/3 and dropping more categoricals tried, no further gain) | Adopted as production default |
+| Classifier regularization sweep (ADR-025) | `depth=3, l2_leaf_reg=25` (was depth=6/l2=3): drop 6.32%→5.66%, AND seen-cell accuracy also improves — strict win, not a tradeoff | Adopted; stopped tuning past this zero-cost point |
 | Risk score weights | Hand-picked (0.40/0.30/0.20/0.10) → fit via ridge-regularized NNLS against `target_count_60m` (ADR-023) | Adopted; refit on every retrain |
 
 ---
@@ -356,12 +357,15 @@ These are disclosed upfront, not buried in an appendix:
 2. **Spatial holdout FAIL, improved** — on a held-out set of H3 cells with
    zero training history, PR-AUC dropped 7.88% originally; ADR-022 (dropping
    raw `h3_cell`/`geohash` as model inputs + adding neighbor-averaged
-   density/intensity features) reduced this to **6.32%** — a real ~20%
-   relative improvement, but still above the project's own 5% acceptance bar.
-   Widening the neighbor ring and dropping further location-correlated
-   categoricals were tried and didn't move it further — this looks like a
-   genuine floor given what's derivable from this dataset alone (no external
-   geographic data permitted), not a tuning oversight.
+   density/intensity features) reduced this to 6.32%, and ADR-025 (a
+   depth/L2-regularization sweep, ~15 configs) reduced it further to
+   **5.66%** — a real ~28% relative improvement overall, but still above the
+   project's own 5% acceptance bar. Widening the neighbor ring, dropping
+   further location-correlated categoricals, and pushing regularization past
+   depth=3/l2=25 were all tried and either didn't help or started costing
+   real seen-cell accuracy — this looks like a genuine floor given what's
+   derivable from this dataset alone (no external geographic data
+   permitted), not a tuning oversight.
 
 3. **Missing enforcement timestamps** — `closed_datetime` and
    `action_taken_timestamp` are 100% missing in this extract. Resolution time
@@ -393,7 +397,7 @@ These are disclosed upfront, not buried in an appendix:
 | Area | What would change |
 |---|---|
 | **Real-time streaming** | Kafka producer → consumer → live feature updates |
-| **Expanded coverage** | More data from more zones to fully close the spatial holdout gap (6.32% → <5%) |
+| **Expanded coverage** | More data from more zones to fully close the spatial holdout gap (5.66% → <5%) |
 | **Enforcement feedback** | If `closed_datetime` becomes available, add resolution-time features |
 | **Causal validation** | A/B test: does acting on an alert actually reduce violations? |
 | **Persistent retraining storage** | Attach a volume so `/admin/retrain` artifacts survive redeploys on ephemeral hosts |

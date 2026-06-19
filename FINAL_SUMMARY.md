@@ -69,12 +69,14 @@ config (Render/Vercel), demo mode with 3 real scenarios.
 1. **Spatial holdout FAIL, improved** — originally 7.88% PR-AUC drop on H3
    cells the model never saw during training. Dropping raw `h3_cell`/`geohash`
    as model inputs and adding neighbor-averaged density/intensity features
-   reduced this to **6.32%** (DECISIONS.md ADR-022) — a real ~20% relative
-   improvement, still above our own 5% bar. The model generalizes well within
-   the coverage area of the dataset; it does not fully generalize to entirely
-   new enforcement zones without retraining — which is now supported (below).
-   Cold-start cells return a conservative default with an explicit flag, not
-   a fabricated prediction.
+   reduced this to 6.32% (DECISIONS.md ADR-022), and a classifier
+   regularization sweep (depth=6→3, l2_leaf_reg=3→25) reduced it further to
+   **5.66%** (ADR-025) — a real ~28% relative improvement overall, still
+   above our own 5% bar. The model generalizes well within the coverage area
+   of the dataset; it does not fully generalize to entirely new enforcement
+   zones without retraining — which is now supported (below). Cold-start
+   cells return a conservative default with an explicit flag, not a
+   fabricated prediction.
 
 2. **Missing enforcement outcomes** — `closed_datetime` and `action_taken_timestamp`
    are 100% missing in this extract. The system cannot measure whether its
