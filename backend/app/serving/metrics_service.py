@@ -95,6 +95,16 @@ def metrics():
 
     spatial_dependency = leaderboard[leaderboard["objective"].str.startswith("spatial_dependency", na=False)]
 
+    abstraction_drop_pct = None
+    abstraction_verdict = "UNKNOWN"
+    if len(spatial_dependency) == 2:
+        pr_auc_a = float(spatial_dependency[spatial_dependency["objective"].str.contains("model_a")]["pr_auc"].iloc[0])
+        pr_auc_b = float(spatial_dependency[spatial_dependency["objective"].str.contains("model_b")]["pr_auc"].iloc[0])
+        # Same relative-drop formula and 3% bar as app/models/spatial_dependency.py
+        # PR_AUC_DROP_PASS_THRESHOLD_PCT — kept in sync rather than hardcoding "PASS".
+        abstraction_drop_pct = (pr_auc_a - pr_auc_b) / pr_auc_a * 100
+        abstraction_verdict = "PASS" if abstraction_drop_pct <= 3.0 else "FAIL"
+
     return {
         "model": {
             "winner": "catboost",
@@ -107,11 +117,8 @@ def metrics():
         "operational_horizon_minutes": 60,
         "spatial_robustness": {
             **_get_spatial_robustness(),
-            "abstraction_verdict": "PASS",
-            "abstraction_pr_auc_drop_pct": float(
-                spatial_dependency[spatial_dependency["objective"].str.contains("model_a")]["pr_auc"].iloc[0]
-                - spatial_dependency[spatial_dependency["objective"].str.contains("model_b")]["pr_auc"].iloc[0]
-            ) if len(spatial_dependency) == 2 else None,
+            "abstraction_verdict": abstraction_verdict,
+            "abstraction_pr_auc_drop_pct": abstraction_drop_pct,
         },
         "live_risk_distribution": {
             "total_cells": total,

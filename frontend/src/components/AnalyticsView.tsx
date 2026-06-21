@@ -174,8 +174,12 @@ export default function AnalyticsView() {
             good
           />
           <StatCard
-            label="Spatial abstraction"
-            value={metrics.spatial_robustness.abstraction_verdict}
+            label="Spatial abstraction (coordinate-memorization check)"
+            value={
+              metrics.spatial_robustness.abstraction_pr_auc_drop_pct !== null
+                ? `${metrics.spatial_robustness.abstraction_pr_auc_drop_pct.toFixed(2)}% drop`
+                : metrics.spatial_robustness.abstraction_verdict
+            }
             good={metrics.spatial_robustness.abstraction_verdict === "PASS"}
           />
         </div>
@@ -193,11 +197,17 @@ export default function AnalyticsView() {
             brand-new geography. This is still short of this project&apos;s
             own 5% internal target, disclosed deliberately rather than
             hidden. The{" "}
-            <span className="font-semibold">spatial-abstraction PASS</span>{" "}
-            alongside it shows the model isn&apos;t purely memorizing
-            coordinates either — it has learned real, transferable signal
-            (time-of-day, vehicle mix, junction history) on top of location.
-            See docs/spatial_dependency.md for the full methodology.
+            <span className="font-semibold">
+              spatial-abstraction check
+            </span>{" "}
+            alongside it (dropping a model trained with raw cell identity to
+            one without it costs only{" "}
+            {metrics.spatial_robustness.abstraction_pr_auc_drop_pct?.toFixed(2)}%
+            PR-AUC, well under the 3% bar) shows the model isn&apos;t purely
+            memorizing coordinates either — it has learned real, transferable
+            signal (time-of-day, vehicle mix, junction history) on top of
+            location. See docs/spatial_dependency.md for the full
+            methodology.
           </p>
         </div>
       </section>
