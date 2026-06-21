@@ -43,3 +43,12 @@ Thumbs.db
 
 # --- Docker ---
 *.log
+
+# --- Local-only project docs (kept on disk, not in the repo) ---
+/slides/
+/DECISIONS.md
+/MODEL_REPORT.md
+/FINAL_SUMMARY.md
+/RELEASE_NOTES.md
+/final_run_report.md
+/submission_checklist.md
