@@ -33,6 +33,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.models.carriageway_impact import compute_carriageway_impact
 from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
+from app.models.hotspot_trend import classify_hotspot_trend
 from app.models.recommendation import load_rules, recommend
 from app.models.risk_score import RiskParams, compute_risk_score
 
@@ -141,6 +142,7 @@ def _cold_start_response(cell: str) -> dict:
         "is_cold_start": True,
         "carriageway_impact_score": 0.0,
         "carriageway_impact_label": "Minimal",
+        "hotspot_trend": "STABLE",
         "note": (
             "No historical data for this H3 cell — model is not validated to "
             "generalize confidently to unseen cells (see DECISIONS.md ADR-016). "
@@ -212,4 +214,9 @@ def forecast(
         "escalated": rec.escalated,
         "carriageway_impact_score": round(float(snapshot["carriageway_impact_score"]), 2),
         "carriageway_impact_label": snapshot["carriageway_impact_label"],
+        "hotspot_trend": classify_hotspot_trend(
+            pd.Series([snapshot["violations_last_60m"]]),
+            pd.Series([snapshot["violation_density"]]),
+            pd.Series([rec.risk_band]),
+        ).iloc[0],
     }

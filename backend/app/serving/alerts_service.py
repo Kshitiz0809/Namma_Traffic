@@ -61,6 +61,7 @@ def alerts(
             "last_known_event": row["last_known_event"],
             "carriageway_impact_score": round(float(row["carriageway_impact_score"]), 2),
             "carriageway_impact_label": row["carriageway_impact_label"],
+            "hotspot_trend": row["hotspot_trend"],
         }
         for _, row in df.iterrows()
     ]

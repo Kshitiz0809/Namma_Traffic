@@ -6,6 +6,7 @@ import {
   ClipboardList,
   LineChart,
   MapPin,
+  Navigation,
   ShieldCheck,
   UploadCloud,
 } from "lucide-react";
@@ -13,6 +14,7 @@ import { useState } from "react";
 
 import AdminPanel from "@/components/AdminPanel";
 import AnalyticsView from "@/components/AnalyticsView";
+import DispatchPanel from "@/components/DispatchPanel";
 import ForecastPanel from "@/components/ForecastPanel";
 import OperationsView from "@/components/OperationsView";
 
@@ -30,6 +32,7 @@ const TABS = [
   { id: "map", label: "Live Risk Map", icon: MapPin },
   { id: "forecast", label: "Forecast Panel", icon: LineChart },
   { id: "operations", label: "Operations View", icon: ClipboardList },
+  { id: "dispatch", label: "Dispatch", icon: Navigation },
   { id: "analytics", label: "Analytics View", icon: BarChart3 },
   { id: "admin", label: "Admin", icon: UploadCloud },
 ] as const;
@@ -118,6 +121,7 @@ export default function Home() {
           <ForecastPanel initialCell={forecastCell} initialLocation={forecastLocation} />
         )}
         {activeTab === "operations" && <OperationsView />}
+        {activeTab === "dispatch" && <DispatchPanel />}
         {activeTab === "analytics" && <AnalyticsView />}
         {activeTab === "admin" && <AdminPanel />}
       </div>

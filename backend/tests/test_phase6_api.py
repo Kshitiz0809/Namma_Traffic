@@ -39,6 +39,34 @@ def test_alerts_endpoint_respects_min_band():
 
 
 @pytest.mark.slow
+def test_alerts_endpoint_includes_hotspot_trend():
+    r = client.get("/alerts", params={"limit": 10})
+    assert r.status_code == 200
+    for alert in r.json()["alerts"]:
+        assert alert["hotspot_trend"] in {"EMERGING", "STEADY", "STABLE"}
+
+
+@pytest.mark.slow
+def test_dispatch_plan_covers_distinct_hotspots():
+    r = client.get("/dispatch/plan", params={"n_units": 3})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["n_units_requested"] == 3
+    assert len(body["assignments"]) <= 3
+    targets = {a["target_h3_cell"] for a in body["assignments"]}
+    assert len(targets) == len(body["assignments"])  # no duplicate targets
+    for a in body["assignments"]:
+        assert a["distance_km"] >= 0
+        assert a["eta_minutes"] >= 0
+
+
+@pytest.mark.slow
+def test_dispatch_plan_invalid_n_units_rejected():
+    r = client.get("/dispatch/plan", params={"n_units": 0})
+    assert r.status_code == 422
+
+
+@pytest.mark.slow
 def test_metrics_endpoint_returns_real_model_numbers():
     r = client.get("/metrics")
     assert r.status_code == 200
@@ -47,6 +75,9 @@ def test_metrics_endpoint_returns_real_model_numbers():
     assert body["operating_threshold"] == 0.15
     assert body["feature_set"].startswith("Self-retraining")
     assert body["live_risk_distribution"]["total_cells"] > 0
+    if body["lead_time"] is not None:
+        assert body["lead_time"]["n_episodes"] >= 0
+        assert 0 <= body["lead_time"]["pct_caught_30m_plus"] <= 100
 
 
 def test_openapi_schema_lists_all_endpoints():

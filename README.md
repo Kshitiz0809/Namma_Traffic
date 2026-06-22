@@ -247,6 +247,42 @@ train-period risk scores.
 
 ---
 
+## Prediction → Action
+
+A prediction alone isn't a decision. Three additions (ADR-026) turn
+hotspot scores into something a dispatcher can actually act on:
+
+**Patrol dispatch optimizer.** Given N available units and the live risk
+snapshot, solves an assignment problem (`scipy.optimize.linear_sum_assignment`)
+to send each unit to a *distinct* hotspot, minimizing total travel
+distance — instead of every unit converging on the single highest-risk
+cell. Unit origins are each police station's own historical-violation
+centroid (internal-data-only — no external facilities database); travel
+time is straight-line haversine distance at a disclosed assumed urban
+speed, not a routing-API ETA. Reports a naive baseline alongside the
+optimized plan so the value-add is visible, not just asserted.
+
+**Backtested early-warning lead time.** Not a restatement of the
+60-minute prediction horizon — genuinely backtested by replaying the
+validation period chronologically per H3 cell and finding, for every real
+hotspot episode, the earliest point the classifier's probability crossed
+the operating threshold. Current result: **4,660/4,662 episodes caught**,
+mean lead time 29.5 minutes — but the median is 0 minutes (most hotspots
+are flagged the moment they start forming, not meaningfully before), and
+**23.0% of episodes get a genuine 30+ minute head start**. Reported with
+both numbers, not just the more flattering mean.
+
+**Emerging vs. steady-state hotspot trend.** Built from existing features
+only, no new model — compares recent activity (`violations_last_60m`,
+extrapolated to a daily rate) against a cell's own historical density. A
+cell-*relative* ratio (≥2x → `EMERGING`), so naturally busy junctions
+aren't permanently flagged. Distinguishes a brand-new spike (where a
+patrol redirect changes the outcome) from a chronic area already part of
+routine patrol (`STEADY`). Surfaced in `/alerts`, `/forecast`, and the
+Operations View.
+
+---
+
 ## API Reference
 
 Base URL (local): `http://localhost:8000` · Swagger UI: `/docs`
@@ -255,8 +291,9 @@ Base URL (local): `http://localhost:8000` · Swagger UI: `/docs`
 |---|---|
 | `GET /health` | Dataset load status, schema validity |
 | `GET /forecast?h3_cell=...` | Hotspot probability, predicted count, risk score/band, recommendation, top contributing factors, cold-start flag |
-| `GET /alerts` | Ranked GREEN/YELLOW/ORANGE/RED alerts across all cells |
-| `GET /metrics` | Model comparison, spatial robustness, live risk distribution, temporal distribution |
+| `GET /alerts` | Ranked GREEN/YELLOW/ORANGE/RED alerts across all cells, including `hotspot_trend` |
+| `GET /metrics` | Model comparison, spatial robustness, live risk distribution, temporal distribution, backtested lead time |
+| `GET /dispatch/plan?n_units=...` | Optimal patrol assignment for N available units across current hotspots |
 | `GET /replay/{scenario}` | Real historical event-sequence replay (for demos) |
 
 ### Admin API (retraining pipeline)
@@ -282,14 +319,15 @@ params with zero downtime.
 
 ## Dashboard
 
-Next.js 14 + Leaflet + Recharts. Five views:
+Next.js 14 + Leaflet + Recharts. Six views:
 
 | View | What it shows |
 |---|---|
 | **Live Risk Map** | All known H3 cells color-coded by alert level |
 | **Forecast Panel** | Per-cell/coordinate prediction + contributing factors |
-| **Operations View** | Alert queue sorted by risk score, filterable by level |
-| **Analytics View** | Model comparison, spatial-robustness metrics, risk distribution, temporal patterns |
+| **Operations View** | Alert queue sorted by risk score, filterable by level, with emerging/steady trend badges |
+| **Dispatch** | Computes an optimal patrol assignment for N available units across current hotspots |
+| **Analytics View** | Model comparison, spatial-robustness metrics, backtested lead time, risk distribution, temporal patterns |
 | **Admin** | Upload CSVs, review/approve staged data, trigger retraining, watch job status |
 
 The dashboard talks only to this project's own FastAPI backend — no

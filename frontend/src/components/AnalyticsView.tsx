@@ -212,6 +212,50 @@ export default function AnalyticsView() {
         </div>
       </section>
 
+      {metrics.lead_time && (
+        <section>
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">
+            Backtested early-warning lead time
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard
+              label="Hotspot episodes caught"
+              value={`${metrics.lead_time.n_caught} / ${metrics.lead_time.n_episodes}`}
+              good
+            />
+            <StatCard
+              label="Mean lead time"
+              value={`${metrics.lead_time.mean_lead_time_minutes.toFixed(0)} min`}
+            />
+            <StatCard
+              label="Caught 30+ min early"
+              value={`${metrics.lead_time.pct_caught_30m_plus.toFixed(1)}%`}
+            />
+            <StatCard
+              label="Caught 60+ min early"
+              value={`${metrics.lead_time.pct_caught_60m_plus.toFixed(1)}%`}
+            />
+          </div>
+          <div className="mt-3 card border-indigo-200 bg-indigo-50 p-4 flex gap-3">
+            <Info size={18} className="text-indigo-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-indigo-900">
+              <span className="font-semibold">What this measures:</span>{" "}
+              replaying the validation period chronologically per H3 cell,
+              for every real hotspot episode this finds the earliest point
+              the classifier&apos;s probability had already crossed the
+              0.15 operating threshold (within a 3-hour lookback). Median
+              lead time is 0 minutes — most hotspots are flagged the moment
+              they start forming, not before — but{" "}
+              {metrics.lead_time.pct_caught_30m_plus.toFixed(0)}% of
+              episodes get a genuine 30+ minute head start, enough to
+              actually redirect a patrol before the violation cluster
+              forms. {metrics.lead_time.n_missed} episode(s) were missed
+              entirely (probability never crossed the threshold in time).
+            </p>
+          </div>
+        </section>
+      )}
+
       <section className="text-xs text-slate-400 border-t border-slate-200 pt-4">
         Feature set: {metrics.feature_set} · Data sources: {metrics.data_sources}
       </section>

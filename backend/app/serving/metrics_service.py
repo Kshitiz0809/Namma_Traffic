@@ -50,6 +50,27 @@ def _get_spatial_robustness() -> dict:
     }
 
 
+def _get_lead_time() -> dict | None:
+    """Reads the backtested early-warning lead-time result (ADR-026) from
+    docs/lead_time_result.json — written fresh by every `train.run()`, same
+    discipline as the spatial holdout result above.
+    """
+    lead_time_path = DOCS_DIR / "lead_time_result.json"
+    if not lead_time_path.exists():
+        return None
+    with open(lead_time_path, encoding="utf-8") as f:
+        result = json.load(f)
+    return {
+        "n_episodes": result["n_episodes"],
+        "n_caught": result["n_caught"],
+        "n_missed": result["n_missed"],
+        "mean_lead_time_minutes": result["mean_lead_time_minutes"],
+        "median_lead_time_minutes": result["median_lead_time_minutes"],
+        "pct_caught_30m_plus": result["pct_caught_30m_plus"],
+        "pct_caught_60m_plus": result["pct_caught_60m_plus"],
+    }
+
+
 def _get_temporal_distribution() -> dict:
     """Historical violation counts by hour-of-day and day-of-week, from the
     full features.parquet event log (each row is one violation occurrence).
@@ -125,6 +146,7 @@ def metrics():
             "band_counts": band_counts,
             "band_pct": {k: round(v / total * 100, 1) for k, v in band_counts.items()},
         },
+        "lead_time": _get_lead_time(),
         "feature_set": "Self-retraining pipeline — automatically incorporates new violation data, "
                         "refits risk weights, and re-validates spatial generalization on every retrain "
                         "(ADR-021/022/024/025)",

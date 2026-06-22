@@ -20,6 +20,7 @@ from app.models.congestion_score import compute_congestion_score, fit_minmax
 from app.models.experiments import run_all_experiments
 from app.models.explain import compute_shap_values, shap_feature_importance
 from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES, prepare_model_frame
+from app.models.lead_time import run_lead_time_backtest
 from app.models.regressor import train_all_regressors
 from app.models.risk_score import fit_risk_params
 from app.models.spatial_holdout import run_spatial_holdout_test
@@ -147,6 +148,21 @@ def run() -> dict:
         json.dump(holdout_result, f, indent=2, default=str)
     logger.info("Spatial holdout verdict: %s (drop %.2f%%)", holdout_result["verdict"], holdout_result["pr_auc_drop_pct"])
 
+    # --- Backtested early-warning lead time (ADR-026) ---
+    # Replays the validation period chronologically per cell to measure how
+    # many minutes before a real hotspot episode the winning classifier's
+    # probability actually crossed the operating threshold — re-run on
+    # every retrain, same discipline as the spatial holdout check above.
+    logger.info("Running lead-time backtest...")
+    val_proba = winner_model.predict_proba(cls_split.val[feature_cols])[:, 1]
+    lead_time_result = run_lead_time_backtest(cls_split.val, val_proba)
+    with open(DOCS_DIR / "lead_time_result.json", "w", encoding="utf-8") as f:
+        json.dump(asdict(lead_time_result), f, indent=2, default=str)
+    logger.info(
+        "Lead-time backtest: %d/%d episodes caught, mean lead %.1f min",
+        lead_time_result.n_caught, lead_time_result.n_episodes, lead_time_result.mean_lead_time_minutes,
+    )
+
     # --- Save winning models ---
     saved_paths = {}
     for name, r in cls_results.items():
@@ -171,6 +187,7 @@ def run() -> dict:
         "experiments": experiment_results,
         "risk_params": asdict(risk_params),
         "spatial_holdout": holdout_result,
+        "lead_time": asdict(lead_time_result),
         "saved_models": saved_paths,
         "elapsed_seconds": elapsed,
     }

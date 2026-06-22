@@ -5,6 +5,7 @@
 import type {
   AlertsResponse,
   AppendResult,
+  DispatchPlan,
   ForecastResponse,
   HealthResponse,
   MetricsResponse,
@@ -57,6 +58,11 @@ export function getAlerts(params: {
 
 export function getMetrics() {
   return getJson<MetricsResponse>("/metrics");
+}
+
+export function getDispatchPlan(nUnits: number, minBand: string = "MEDIUM") {
+  const qs = new URLSearchParams({ n_units: String(nUnits), min_band: minBand });
+  return getJson<DispatchPlan>(`/dispatch/plan?${qs.toString()}`);
 }
 
 export function getReplay(scenario: string) {

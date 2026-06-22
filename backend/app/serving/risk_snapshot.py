@@ -16,6 +16,7 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 
 from app.models.carriageway_impact import compute_carriageway_impact
 from app.models.feature_set import NUMERIC_FEATURES, REDUCED_SPATIAL_CATEGORICAL_FEATURES
+from app.models.hotspot_trend import classify_hotspot_trend
 from app.models.recommendation import load_rules, recommend
 from app.models.risk_score import RiskParams, compute_risk_score
 
@@ -82,6 +83,8 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
     risk_df["last_known_event"] = latest["created_datetime"].astype(str).to_numpy()
     risk_df["carriageway_impact_score"] = latest["carriageway_impact_score"].to_numpy()
     risk_df["carriageway_impact_label"] = latest["carriageway_impact_label"].to_numpy()
+    risk_df["violations_last_60m"] = latest["violations_last_60m"].to_numpy()
+    risk_df["violation_density"] = latest["violation_density"].to_numpy()
 
     recommendations = [
         recommend(
@@ -99,6 +102,13 @@ def get_all_cell_risk_snapshot() -> pd.DataFrame:
 
     alert_color = {"LOW": "GREEN", "MEDIUM": "YELLOW", "HIGH": "ORANGE", "CRITICAL": "RED"}
     risk_df["alert_level"] = risk_df["final_risk_band"].map(alert_color)
+
+    # ADR-026: distinguishes a chronic, already-known risk area from a
+    # cell whose activity just spiked relative to its OWN history -- the
+    # latter is where a patrol redirect actually changes the outcome.
+    risk_df["hotspot_trend"] = classify_hotspot_trend(
+        risk_df["violations_last_60m"], risk_df["violation_density"], risk_df["final_risk_band"],
+    )
 
     _snapshot_df = risk_df
     return risk_df

@@ -26,6 +26,7 @@ export interface ForecastResponse {
   // speed/volume/queue data). See docs/risk_definition.md.
   carriageway_impact_score: number;
   carriageway_impact_label: "Minimal" | "Moderate" | "Significant" | "Severe";
+  hotspot_trend: "EMERGING" | "STEADY" | "STABLE";
 }
 
 export interface Alert {
@@ -44,6 +45,10 @@ export interface Alert {
   last_known_event: string;
   carriageway_impact_score: number;
   carriageway_impact_label: "Minimal" | "Moderate" | "Significant" | "Severe";
+  // Phase 9 (ADR-026) — EMERGING: recent activity far exceeds this cell's
+  // own historical norm (a patrol redirect here changes the outcome).
+  // STEADY: a known, chronic risk area. STABLE: LOW band.
+  hotspot_trend: "EMERGING" | "STEADY" | "STABLE";
 }
 
 export interface AlertsResponse {
@@ -110,11 +115,54 @@ export interface MetricsResponse {
     band_counts: Record<string, number>;
     band_pct: Record<string, number>;
   };
+  // Phase 9 (ADR-026) — backtested by replaying the validation period
+  // chronologically per cell; null until the first retrain after this
+  // feature shipped writes docs/lead_time_result.json.
+  lead_time: {
+    n_episodes: number;
+    n_caught: number;
+    n_missed: number;
+    mean_lead_time_minutes: number;
+    median_lead_time_minutes: number;
+    pct_caught_30m_plus: number;
+    pct_caught_60m_plus: number;
+  } | null;
   feature_set: string;
   data_sources: string;
   temporal_distribution: {
     by_hour: { hour: number; count: number }[];
     by_weekday: { weekday: number; label: string; count: number }[];
+  };
+}
+
+// Phase 9 (ADR-026) — patrol dispatch optimizer. See
+// backend/app/models/dispatch.py and backend/app/serving/dispatch_service.py.
+export interface DispatchAssignment {
+  unit_id: number;
+  origin_station: string;
+  origin_lat: number;
+  origin_lon: number;
+  target_h3_cell: string;
+  target_junction: string;
+  target_lat: number;
+  target_lon: number;
+  target_risk_score: number;
+  target_risk_band: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  distance_km: number;
+  eta_minutes: number;
+}
+
+export interface DispatchPlan {
+  n_units_requested: number;
+  n_candidate_hotspots: number;
+  assignments: DispatchAssignment[];
+  summary: {
+    n_units: number;
+    total_risk_covered: number;
+    total_distance_km: number;
+    avg_eta_minutes: number;
+    naive_single_target_risk_covered: number;
+    distinct_hotspots_covered: number;
   };
 }
 

@@ -4,7 +4,7 @@
 // intervention-type summary (counts per recommendation action), the way
 // an operator/dispatcher would actually look at this.
 
-import { ClipboardList, TrendingUp } from "lucide-react";
+import { ClipboardList, Flame, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getAlerts } from "@/lib/api";
@@ -29,6 +29,15 @@ const IMPACT_BADGE: Record<Alert["carriageway_impact_label"], string> = {
   Moderate: "bg-yellow-100 text-yellow-800",
   Significant: "bg-orange-100 text-orange-800",
   Severe: "bg-red-100 text-red-800",
+};
+
+// ADR-026 — EMERGING: recent activity far exceeds this cell's own
+// historical norm (a patrol redirect here changes the outcome). STEADY:
+// a known, chronic risk area, presumably already part of routine patrol.
+const TREND_BADGE: Record<Alert["hotspot_trend"], string> = {
+  EMERGING: "bg-red-100 text-red-800",
+  STEADY: "bg-slate-100 text-slate-600",
+  STABLE: "bg-slate-50 text-slate-400",
 };
 
 const CARD_ACCENT = [
@@ -56,6 +65,7 @@ export default function OperationsView() {
   }, {});
 
   const escalatedCount = alerts.filter((a) => a.escalated).length;
+  const emergingCount = alerts.filter((a) => a.hotspot_trend === "EMERGING").length;
 
   if (loading)
     return <div className="card p-10 text-center text-slate-400">Loading…</div>;
@@ -88,6 +98,16 @@ export default function OperationsView() {
               Escalated by rule engine
             </div>
           </div>
+          <div className="card p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-red-600 to-red-400" />
+            <div className="flex items-center gap-1.5">
+              <Flame size={16} className="text-red-500" />
+              <div className="text-2xl font-bold text-slate-800">{emergingCount}</div>
+            </div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              Emerging (new spike, not chronic)
+            </div>
+          </div>
         </div>
       </section>
 
@@ -109,6 +129,9 @@ export default function OperationsView() {
                 </th>
                 <th className="px-4 py-3">Recommendation</th>
                 <th className="px-4 py-3">Escalated</th>
+                <th className="px-4 py-3" title="EMERGING: activity well above this cell's own historical norm. STEADY: a known, chronic risk area.">
+                  Trend
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -142,6 +165,11 @@ export default function OperationsView() {
                     ) : (
                       <span className="text-slate-300">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TREND_BADGE[a.hotspot_trend]}`}>
+                      {a.hotspot_trend}
+                    </span>
                   </td>
                 </tr>
               ))}

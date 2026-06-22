@@ -36,7 +36,7 @@ from app.ingestion import staging_store
 from app.ingestion.load_data import load_raw_violations
 from app.ingestion.raw_store import MASTER_RAW_PATH, append_new_violations, load_master
 from app.models import retrain
-from app.serving import forecast_service, metrics_service, risk_snapshot
+from app.serving import dispatch_service, forecast_service, metrics_service, risk_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +153,7 @@ def _run_retrain_job(job_id: str) -> None:
         forecast_service.reload_state()
         risk_snapshot.reload_state()
         metrics_service.reload_state()
+        dispatch_service.reload_state()
         logger.info("Retrain job %s succeeded in %.1fs", job_id, result["elapsed_seconds"])
     except Exception as exc:  # noqa: BLE001 — surface any failure via job status, not a crashed background task
         job.status = "FAILED"
