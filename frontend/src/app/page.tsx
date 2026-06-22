@@ -45,6 +45,9 @@ export default function Home() {
   const [forecastLocation, setForecastLocation] = useState<{ lat: number; lon: number } | null>(
     null
   );
+  const [mapFocus, setMapFocus] = useState<{ lat: number; lon: number; label?: string } | null>(
+    null
+  );
 
   function handleForecastZone(cell: string) {
     setForecastCell(cell);
@@ -56,6 +59,11 @@ export default function Home() {
     setForecastLocation({ lat, lon });
     setForecastCell(null);
     setActiveTab("forecast");
+  }
+
+  function handleViewOnMap(lat: number, lon: number, label?: string) {
+    setMapFocus({ lat, lon, label });
+    setActiveTab("map");
   }
 
   return (
@@ -115,13 +123,14 @@ export default function Home() {
           <LiveRiskMap
             onForecastZone={handleForecastZone}
             onForecastLocation={handleForecastLocation}
+            focusLocation={mapFocus}
           />
         )}
         {activeTab === "forecast" && (
           <ForecastPanel initialCell={forecastCell} initialLocation={forecastLocation} />
         )}
-        {activeTab === "operations" && <OperationsView />}
-        {activeTab === "dispatch" && <DispatchPanel />}
+        {activeTab === "operations" && <OperationsView onViewOnMap={handleViewOnMap} />}
+        {activeTab === "dispatch" && <DispatchPanel onViewOnMap={handleViewOnMap} />}
         {activeTab === "analytics" && <AnalyticsView />}
         {activeTab === "admin" && <AdminPanel />}
       </div>

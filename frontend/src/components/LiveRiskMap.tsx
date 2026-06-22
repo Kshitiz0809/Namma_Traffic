@@ -66,9 +66,11 @@ function ClickCapture({ onClick }: { onClick: (lat: number, lon: number) => void
 function LiveMode({
   onForecastZone,
   onForecastLocation,
+  focusLocation,
 }: {
   onForecastZone?: (cell: string) => void;
   onForecastLocation?: (lat: number, lon: number) => void;
+  focusLocation?: { lat: number; lon: number; label?: string } | null;
 }) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +139,20 @@ function LiveMode({
           />
           {onForecastLocation && (
             <ClickCapture onClick={(lat, lon) => setClickedPoint({ lat, lon })} />
+          )}
+          {focusLocation && (
+            <>
+              <RecenterMap center={[focusLocation.lat, focusLocation.lon]} zoom={16} />
+              <CircleMarker
+                center={[focusLocation.lat, focusLocation.lon]}
+                radius={14}
+                pathOptions={{ color: "#4f46e5", fillColor: "#4f46e5", fillOpacity: 0.15, weight: 3, dashArray: "4 4" }}
+              >
+                <Popup>
+                  <div className="text-sm font-medium">{focusLocation.label || "Location"}</div>
+                </Popup>
+              </CircleMarker>
+            </>
           )}
           {clickedPoint && (
             <CircleMarker
@@ -398,9 +414,11 @@ function Stat({ label, value }: { label: string; value: string }) {
 export default function LiveRiskMap({
   onForecastZone,
   onForecastLocation,
+  focusLocation,
 }: {
   onForecastZone?: (cell: string) => void;
   onForecastLocation?: (lat: number, lon: number) => void;
+  focusLocation?: { lat: number; lon: number; label?: string } | null;
 } = {}) {
   const [mode, setMode] = useState<"live" | "replay">("live");
 
@@ -431,7 +449,7 @@ export default function LiveRiskMap({
         </button>
       </div>
       {mode === "live" ? (
-        <LiveMode onForecastZone={onForecastZone} onForecastLocation={onForecastLocation} />
+        <LiveMode onForecastZone={onForecastZone} onForecastLocation={onForecastLocation} focusLocation={focusLocation} />
       ) : (
         <ReplayMode />
       )}

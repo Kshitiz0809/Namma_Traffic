@@ -6,7 +6,7 @@
 // instead of leaving "where do I send my patrols" as a manual judgment
 // call. See backend/app/models/dispatch.py.
 
-import { Navigation, Radio, Target } from "lucide-react";
+import { MapPin, Navigation, Radio, Target } from "lucide-react";
 import { useState } from "react";
 
 import { getDispatchPlan } from "@/lib/api";
@@ -19,7 +19,11 @@ const BAND_BADGE: Record<string, string> = {
   CRITICAL: "bg-red-100 text-red-800",
 };
 
-export default function DispatchPanel() {
+export default function DispatchPanel({
+  onViewOnMap,
+}: {
+  onViewOnMap?: (lat: number, lon: number, label?: string) => void;
+} = {}) {
   const [nUnits, setNUnits] = useState(5);
   const [minBand, setMinBand] = useState("MEDIUM");
   const [plan, setPlan] = useState<DispatchPlan | null>(null);
@@ -141,7 +145,20 @@ export default function DispatchPanel() {
                   <tr key={a.unit_id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-medium">#{a.unit_id}</td>
                     <td className="px-4 py-3">{a.origin_station}</td>
-                    <td className="px-4 py-3 font-medium">{a.target_junction}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {onViewOnMap ? (
+                        <button
+                          onClick={() => onViewOnMap(a.target_lat, a.target_lon, a.target_junction)}
+                          className="inline-flex items-center gap-1 text-indigo-700 hover:text-indigo-900 hover:underline"
+                          title="View this hotspot on the Live Risk Map"
+                        >
+                          {a.target_junction === "No Junction" && <MapPin size={12} className="text-slate-400" />}
+                          {a.target_junction}
+                        </button>
+                      ) : (
+                        a.target_junction
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${BAND_BADGE[a.target_risk_band]}`}>
                         {a.target_risk_band}

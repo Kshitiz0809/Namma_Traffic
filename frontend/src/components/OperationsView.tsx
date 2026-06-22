@@ -4,7 +4,7 @@
 // intervention-type summary (counts per recommendation action), the way
 // an operator/dispatcher would actually look at this.
 
-import { ClipboardList, Flame, TrendingUp } from "lucide-react";
+import { ClipboardList, Flame, MapPin, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getAlerts } from "@/lib/api";
@@ -47,7 +47,11 @@ const CARD_ACCENT = [
   "from-rose-500 to-rose-400",
 ];
 
-export default function OperationsView() {
+export default function OperationsView({
+  onViewOnMap,
+}: {
+  onViewOnMap?: (lat: number, lon: number, label?: string) => void;
+} = {}) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +149,20 @@ export default function OperationsView() {
                       {a.alert_level}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-medium">{a.junction_name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {onViewOnMap ? (
+                      <button
+                        onClick={() => onViewOnMap(a.latitude, a.longitude, a.junction_name)}
+                        className="inline-flex items-center gap-1 text-indigo-700 hover:text-indigo-900 hover:underline"
+                        title="View this location on the Live Risk Map"
+                      >
+                        {a.junction_name === "No Junction" && <MapPin size={12} className="text-slate-400" />}
+                        {a.junction_name}
+                      </button>
+                    ) : (
+                      a.junction_name
+                    )}
+                  </td>
                   <td className="px-4 py-3">{a.risk_score.toFixed(1)}</td>
                   <td className="px-4 py-3">
                     {(a.probability * 100).toFixed(1)}%
