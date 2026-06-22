@@ -29,9 +29,11 @@ COPY ml/models/ ml/models/
 # `python -m app.features.build_features`).
 COPY data/processed/ data/processed/
 # Docs the API reads at request time (leaderboard.csv + spatial_holdout_result.json
-# for /metrics, recommendation_rules.yaml for the rule engine) — these ARE committed.
+# + lead_time_result.json for /metrics, recommendation_rules.yaml for the
+# rule engine) — these ARE committed.
 COPY docs/leaderboard.csv docs/leaderboard.csv
 COPY docs/spatial_holdout_result.json docs/spatial_holdout_result.json
+COPY docs/lead_time_result.json docs/lead_time_result.json
 COPY docs/recommendation_rules.yaml docs/recommendation_rules.yaml
 
 WORKDIR /app/backend
