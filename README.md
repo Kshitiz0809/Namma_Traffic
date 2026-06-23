@@ -6,7 +6,7 @@
 
 **Status:** retrainable, deployed, 78 backend tests passing.
 
-Live demo: **[namma-traffic-orpin.vercel.app](https://namma-traffic-chi.vercel.app/)**
+Live demo: **[https://namma-traffic-chi.vercel.app/](https://namma-traffic-chi.vercel.app/)**
 · API: **[kshitizsharma-parkingintelligenceapi.hf.space](https://kshitizsharma-parkingintelligenceapi.hf.space)**
 
 ---
